@@ -1,4 +1,4 @@
-﻿import datetime
+import datetime
 import os
 import re
 from typing import Optional
@@ -18,6 +18,7 @@ FALLBACK_REPLY = "现在网络不太稳定，稍后回你"
 
 
 def get_openai_client():
+    """懒加载 OpenAI 客户端，避免模块导入阶段就失败。"""
     global openai_client
     if openai_client is not None:
         return openai_client
@@ -41,6 +42,7 @@ def get_openai_client():
 
 
 def get_collection():
+    """懒加载向量库集合，失败时返回 None 并走无检索降级。"""
     global collection, _collection_initialized
     if _collection_initialized:
         return collection
@@ -67,6 +69,7 @@ def get_collection():
 
 
 def daily_reply(msg):
+    """高频关键词规则回复，优先于 LLM 调用以降低延迟和成本。"""
     msg_lower = msg.lower()
     high_priority = [
         (r"干啥呢|干啥|在干嘛", "当前与你对话的是人工智障，有事请留言"),
@@ -105,6 +108,7 @@ def daily_reply(msg):
 
 
 def _build_prompt(msg_clean, short_memory_str, examples, current_time):
+    """组装发送给模型的 prompt，按是否命中示例选择模板。"""
     if examples:
         return (
             "以下是你过去和好友聊天的多轮对话示例（重点模仿说话风格，但必须回答当前话题）：\n"
@@ -123,6 +127,7 @@ def _build_prompt(msg_clean, short_memory_str, examples, current_time):
 
 
 def _retrieve_examples(vector_collection, short_memory_str, msg_clean):
+    """从向量库检索相似样本，并兼容旧数据结构回退重建。"""
     if vector_collection is None or not msg_clean:
         return ""
 
@@ -159,6 +164,7 @@ def get_smart_reply(
     vector_collection=None,
     now: Optional[datetime.datetime] = None,
 ):
+    """综合短期记忆和向量示例，调用 LLM 生成最终回复。"""
     try:
         msg_clean = clean_text_safe(msg)
         now_dt = now or datetime.datetime.now()

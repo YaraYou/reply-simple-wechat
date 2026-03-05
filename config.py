@@ -1,8 +1,10 @@
-﻿from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    # Use env var API_KEY; do not hardcode secrets in source.
+    """项目配置：从环境变量/.env 加载模型与运行参数。"""
+
+    # 使用环境变量 API_KEY，避免在源码中硬编码密钥。
     api_key: str = ""
     model_name: str = "ep-20260126003248-wsrww"
     base_url: str = "https://ark.cn-beijing.volces.com/api/v3"
@@ -12,6 +14,7 @@ class Settings(BaseSettings):
     reply_max_length: int = 40
     short_memory_size: int = 3
 
+    # 微信窗口定位参数（用于桌面自动化坐标计算）。
     wechat_window_width: int = 900
     wechat_window_height: int = 700
     wechat_window_x: int = 50
@@ -20,4 +23,5 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 
+# 全局配置实例。
 settings = Settings()

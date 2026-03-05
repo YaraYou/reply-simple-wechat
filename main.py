@@ -2,6 +2,7 @@ from loguru import logger
 import time
 import sys
 import random
+
 from config import settings
 from wechat_client import WeChatClient
 from memory import short_memory
@@ -15,16 +16,19 @@ logger.add("bot.log", rotation="10 MB", retention="7 days", level="DEBUG")
 
 
 def add_to_vector_db(user_msg, assistant_msg):
+    """将最新一轮用户/助手消息写入向量库，供后续检索示例使用。"""
     current_collection = reply.get_collection()
     if current_collection is None:
         logger.debug("Vector DB unavailable, skip incremental save")
         return
+
     try:
         user_clean = clean_text_safe(user_msg)
         assistant_clean = clean_text_safe(assistant_msg)
         if not user_clean or not assistant_clean:
             logger.debug("Empty message after clean, skip")
             return
+
         dialogue_doc = f"对方：{user_clean}\n我：{assistant_clean}"
         doc_id = f"inc_{int(time.time() * 1000)}_{random.randint(1000, 9999)}"
         current_collection.add(
@@ -38,6 +42,7 @@ def add_to_vector_db(user_msg, assistant_msg):
 
 
 def main():
+    """机器人主循环：收消息 -> 生成回复 -> 发送 -> 记忆与向量库落盘。"""
     logger.info("Starting WeChat bot...")
     logger.info("Make sure WeChat window is open and focused on the target chat")
     input("Press Enter to start...")
@@ -66,8 +71,8 @@ def main():
 
             client.send_message(reply_text)
 
-            # 最小接入：根据消息内容自动识别类型，并读取默认优先级。
-            # 兼容性：即使不传 conversation_type/priority，add_round 仍能正常工作。
+            # 根据消息内容自动识别对话类型，并使用该类型默认优先级。
+            # 兼容旧调用：即使不传 conversation_type/priority，add_round 仍可运行。
             conversation_type = classify_message(new_msg)
             priority = get_policy(conversation_type).default_priority
             short_memory.add_round(
