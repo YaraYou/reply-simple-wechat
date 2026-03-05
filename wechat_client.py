@@ -3,16 +3,16 @@ import pyautogui
 import time
 import numpy as np
 from PIL import ImageGrab
-import easyocr
 import pygetwindow as gw
 import pyperclip
 from loguru import logger
 import config
 
-reader = easyocr.Reader(["ch_sim", "en"])
-
 
 class WeChatClient:
+    _ocr_reader = None
+    _ocr_init_failed = False
+
     def __init__(self):
         self.input_x_ratio = 0.3533
         self.input_y_from_bottom = 95
@@ -21,6 +21,23 @@ class WeChatClient:
 
         self.message_seen_at = {}
         self.message_dedup_window_seconds = 8
+
+    @classmethod
+    def _get_ocr_reader(cls):
+        if cls._ocr_reader is not None:
+            return cls._ocr_reader
+        if cls._ocr_init_failed:
+            return None
+
+        try:
+            import easyocr
+
+            cls._ocr_reader = easyocr.Reader(["ch_sim", "en"])
+            return cls._ocr_reader
+        except Exception as e:
+            cls._ocr_init_failed = True
+            logger.error(f"OCR reader init failed: {e}")
+            return None
 
     def _cleanup_seen_hashes(self, now_ts: float):
         expire_after = self.message_dedup_window_seconds * 6
@@ -74,6 +91,18 @@ class WeChatClient:
 
         return win
 
+    def get_chat_key(self):
+        win = self._get_window()
+        if not win:
+            return "unknown_chat"
+
+        title = (win.title or "").strip()
+        if not title:
+            return "unknown_chat"
+
+        # Use window title as a stable per-chat key where possible.
+        return title
+
     def send_message(self, msg, chat=None):
         try:
             win = self._get_window()
@@ -104,6 +133,10 @@ class WeChatClient:
     def get_latest_message(self):
         win = self._get_window()
         if not win:
+            return None
+
+        reader = self._get_ocr_reader()
+        if reader is None:
             return None
 
         left_offset, top_offset, right_offset, bottom_offset = self.msg_bbox_offsets

@@ -1,20 +1,18 @@
-﻿from loguru import logger
+from loguru import logger
 import time
 import sys
 import random
-import os
 from config import settings
 from wechat_client import WeChatClient
 from memory import short_memory
 import reply
 from utils import clean_text_safe
-from memory import ConversationType
+from memory_policy import classify_message, get_policy
 
 logger.remove()
 logger.add(sys.stdout, level="INFO", format="{time} | {level} | {message}")
 logger.add("bot.log", rotation="10 MB", retention="7 days", level="DEBUG")
 
-print("API_KEY from env:", os.getenv("API_KEY"))
 
 def add_to_vector_db(user_msg, assistant_msg):
     current_collection = reply.get_collection()
@@ -27,9 +25,10 @@ def add_to_vector_db(user_msg, assistant_msg):
         if not user_clean or not assistant_clean:
             logger.debug("Empty message after clean, skip")
             return
+        dialogue_doc = f"对方：{user_clean}\n我：{assistant_clean}"
         doc_id = f"inc_{int(time.time() * 1000)}_{random.randint(1000, 9999)}"
         current_collection.add(
-            documents=[user_clean],
+            documents=[dialogue_doc],
             metadatas=[{"user": user_clean, "assistant": assistant_clean}],
             ids=[doc_id],
         )
@@ -54,7 +53,7 @@ def main():
             if not new_msg:
                 continue
 
-            sender = "current_friend"
+            sender = client.get_chat_key()
             logger.info(f"Received message: {new_msg[:50]}...")
             reply_text = reply.daily_reply(new_msg)
 
@@ -66,13 +65,19 @@ def main():
                 reply_text = reply_text[:settings.reply_max_length] + "..."
 
             client.send_message(reply_text)
+
+            # 最小接入：根据消息内容自动识别类型，并读取默认优先级。
+            # 兼容性：即使不传 conversation_type/priority，add_round 仍能正常工作。
+            conversation_type = classify_message(new_msg)
+            priority = get_policy(conversation_type).default_priority
             short_memory.add_round(
                 sender,
                 new_msg,
                 reply_text,
-                priority=1,
-                conversation_type=ConversationType.GENERAL,
+                conversation_type=conversation_type,
+                priority=priority,
             )
+
             add_to_vector_db(new_msg, reply_text)
 
         except KeyboardInterrupt:

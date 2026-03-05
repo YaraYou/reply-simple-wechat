@@ -133,6 +133,18 @@ def _retrieve_examples(vector_collection, short_memory_str, msg_clean):
         if docs and docs[0]:
             logger.debug(f"Retrieved {len(docs[0])} examples from vector db")
             return "\n".join(docs[0])
+
+        metadatas = (results or {}).get("metadatas") or []
+        if metadatas and metadatas[0]:
+            reconstructed = []
+            for meta in metadatas[0]:
+                user_text = clean_text_safe((meta or {}).get("user", ""))
+                assistant_text = clean_text_safe((meta or {}).get("assistant", ""))
+                if user_text and assistant_text:
+                    reconstructed.append(f"对方：{user_text}\n我：{assistant_text}")
+            if reconstructed:
+                logger.debug(f"Reconstructed {len(reconstructed)} examples from metadata")
+                return "\n".join(reconstructed)
     except Exception as e:
         logger.warning(f"Vector retrieval failed (ignored): {e}")
 
