@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """项目配置：从环境变量/.env 加载模型与运行参数。"""
 
-    # 使用环境变量 API_KEY，避免在源码中硬编码密钥。
+    # 使用环境变量 API_KEY
     api_key: str = ""
     model_name: str = "ep-20260126003248-wsrww"
     base_url: str = "https://ark.cn-beijing.volces.com/api/v3"
