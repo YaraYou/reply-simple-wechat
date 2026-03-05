@@ -147,9 +147,3 @@ python -m unittest -v
 - 异常监控与自动恢复
 
 ---
-
-如果你要接入 GitHub Actions，可在仓库新增 `python-tests.yml` 后把下方徽章替换为真实地址：
-
-```md
-![CI](https://github.com/<owner>/<repo>/actions/workflows/python-tests.yml/badge.svg)
-```
