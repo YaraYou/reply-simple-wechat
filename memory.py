@@ -1,6 +1,8 @@
+﻿from __future__ import annotations
+
 from collections import defaultdict, deque
 import datetime
-from typing import Dict, Iterable, List, Optional, Union
+from typing import Any, Dict, Iterable, List, Optional, Union
 
 from memory_policy import (
     ConversationType,
@@ -12,7 +14,7 @@ from memory_policy import (
 
 
 class ShortTermMemory:
-    """按对话类型和优先级维护短期记忆，并输出用于提示词的上下文。"""
+    """Maintain short-term conversation context with type-aware retention policies."""
 
     def __init__(
         self,
@@ -21,7 +23,6 @@ class ShortTermMemory:
         global_max_rounds: int = 40,
         prompt_max_rounds: int = 8,
     ):
-        """初始化记忆容器与类型策略。"""
         self.max_rounds = max_rounds
         self.memory: Dict[str, deque] = defaultdict(deque)
         self.global_max_rounds = global_max_rounds
@@ -36,13 +37,11 @@ class ShortTermMemory:
         }
 
     def _resolve_type(self, conversation_type: Union[str, ConversationType, None], user_msg: str) -> ConversationType:
-        """优先使用显式类型，否则基于用户消息规则分类。"""
         if conversation_type is not None:
             return normalize_type(conversation_type)
         return classify_message(user_msg)
 
     def _effective_type_limit(self, conversation_key: ConversationType) -> int:
-        """计算某类消息的实际保留上限。"""
         default_limit = get_policy(conversation_key).limit
         configured_limit = self.type_limits.get(conversation_key)
         if configured_limit is not None:
@@ -50,7 +49,6 @@ class ShortTermMemory:
         return default_limit if default_limit > 0 else self.max_rounds
 
     def _trim_type_limit(self, sender: str, conversation_key: ConversationType):
-        """当某类型超限时，优先淘汰该类型中低优先级且更旧的记录。"""
         sender_rounds = self.memory[sender]
         type_value = conversation_key.value
         limit = self._effective_type_limit(conversation_key)
@@ -65,7 +63,6 @@ class ShortTermMemory:
             del sender_rounds[remove_idx]
 
     def _trim_global_limit(self, sender: str):
-        """全局超限时优先移除非 sticky 且低优先级的旧记录。"""
         sender_rounds = self.memory[sender]
         while len(sender_rounds) > self.global_max_rounds:
             non_sticky = [
@@ -84,8 +81,9 @@ class ShortTermMemory:
         assistant_msg: str,
         priority: Optional[int] = None,
         conversation_type: Union[str, ConversationType, None] = None,
+        analysis: Optional[Dict[str, Any]] = None,
     ):
-        """新增一轮对话；保持旧接口兼容，新增参数均为可选。"""
+        """Backward-compatible API. New argument `analysis` is optional."""
         conversation_key = self._resolve_type(conversation_type, user_msg)
         policy = get_policy(conversation_key)
         effective_priority = policy.default_priority if priority is None else priority
@@ -97,6 +95,7 @@ class ShortTermMemory:
                 "time": datetime.datetime.now(),
                 "priority": int(effective_priority),
                 "type": conversation_key.value,
+                "analysis": analysis or {},
             }
         )
 
@@ -109,7 +108,6 @@ class ShortTermMemory:
         conversation_type: Optional[Union[str, ConversationType]] = None,
         types: Optional[Iterable[Union[str, ConversationType]]] = None,
     ) -> List[dict]:
-        """按单类型或类型集合筛选记忆记录。"""
         rounds = list(self.memory[sender])
         if types is not None:
             allowed = {t.value for t in normalize_types(types)}
@@ -125,7 +123,6 @@ class ShortTermMemory:
         conversation_type: Optional[Union[str, ConversationType]] = None,
         types: Optional[Iterable[Union[str, ConversationType]]] = None,
     ) -> List[dict]:
-        """获取并按优先级、时间倒序返回记忆记录。"""
         rounds = self._filter_rounds(sender, conversation_type=conversation_type, types=types)
         rounds.sort(key=lambda x: (x["priority"], x["time"]), reverse=True)
         return rounds
@@ -137,7 +134,6 @@ class ShortTermMemory:
         types: Optional[Iterable[Union[str, ConversationType]]] = None,
         max_rounds: Optional[int] = None,
     ) -> str:
-        """将记忆格式化为提示词上下文，支持按类型过滤。"""
         rounds = self.get_recent_rounds(sender, conversation_type=conversation_type, types=types)
 
         if conversation_type is None and types is None:
@@ -147,10 +143,13 @@ class ShortTermMemory:
 
         lines = []
         for r in rounds:
-            lines.append(f"对方：{r['user']} (类型: {r['type']}, 优先级: {r['priority']})")
+            analysis = r.get("analysis") or {}
+            summary = analysis.get("summary")
+            intent = analysis.get("intent", r["type"])
+            user_text = summary if summary else r["user"]
+            lines.append(f"对方：{user_text} (类型: {intent}, 优先级: {r['priority']})")
             lines.append(f"我：{r['assistant']} (类型: {r['type']}, 优先级: {r['priority']})")
         return "\n".join(lines)
 
 
-# 全局短期记忆实例，供主流程直接复用。
 short_memory = ShortTermMemory()

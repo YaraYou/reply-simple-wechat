@@ -1,7 +1,9 @@
+﻿from __future__ import annotations
+
 import datetime
 import os
 import re
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from loguru import logger
 
@@ -18,7 +20,6 @@ FALLBACK_REPLY = "现在网络不太稳定，稍后回你"
 
 
 def get_openai_client():
-    """懒加载 OpenAI 客户端，避免模块导入阶段就失败。"""
     global openai_client
     if openai_client is not None:
         return openai_client
@@ -42,7 +43,6 @@ def get_openai_client():
 
 
 def get_collection():
-    """懒加载向量库集合，失败时返回 None 并走无检索降级。"""
     global collection, _collection_initialized
     if _collection_initialized:
         return collection
@@ -68,8 +68,7 @@ def get_collection():
     return collection
 
 
-def daily_reply(msg):
-    """高频关键词规则回复，优先于 LLM 调用以降低延迟和成本。"""
+def daily_reply(msg: str) -> Optional[str]:
     msg_lower = msg.lower()
     high_priority = [
         (r"干啥呢|干啥|在干嘛", "当前与你对话的是人工智障，有事请留言"),
@@ -107,27 +106,76 @@ def daily_reply(msg):
     return None
 
 
-def _build_prompt(msg_clean, short_memory_str, examples, current_time):
-    """组装发送给模型的 prompt，按是否命中示例选择模板。"""
+def _intent_quick_reply(msg: str, analysis_context: Optional[Dict[str, Any]]) -> Optional[str]:
+    """Intent-specific fast path.
+
+    - greeting/feedback/task use short deterministic replies.
+    - question/general continue to smart generation.
+    """
+    if not analysis_context:
+        return None
+
+    intent = analysis_context.get("intent")
+    entities = analysis_context.get("entities") or {}
+
+    if intent == "greeting":
+        return "在呢，怎么啦？"
+
+    if intent == "feedback":
+        return "收到～不客气"
+
+    if intent == "task":
+        times = entities.get("time") or []
+        if times:
+            return f"收到，我记下了（{times[0]}）。"
+        return "收到，我先记下这个任务。"
+
+    return None
+
+
+def _analysis_to_text(analysis_context: Optional[Dict[str, Any]]) -> str:
+    if not analysis_context:
+        return ""
+
+    intent = analysis_context.get("intent", "")
+    summary = analysis_context.get("summary", "")
+    sentiment = analysis_context.get("sentiment", "")
+    entities = analysis_context.get("entities", {})
+    confidence = analysis_context.get("confidence", 0)
+
+    return (
+        "消息分析结果：\n"
+        f"- 意图: {intent}\n"
+        f"- 情绪: {sentiment}\n"
+        f"- 置信度: {confidence:.2f}\n"
+        f"- 提炼摘要: {summary}\n"
+        f"- 实体: {entities}\n"
+    )
+
+
+def _build_prompt(msg_clean: str, short_memory_str: str, examples: str, current_time: str, analysis_text: str):
+    analysis_block = f"{analysis_text}\n" if analysis_text else ""
+
     if examples:
         return (
             "以下是你过去和好友聊天的多轮对话示例（重点模仿说话风格，但必须回答当前话题）：\n"
             f"{examples}\n\n"
             f"当前对话上下文（最近几句）：\n{short_memory_str}\n"
+            f"{analysis_block}"
             f"对方最新消息：{msg_clean}\n"
             "请用第一人称、日常口吻简短回复。"
         )
 
     return (
         f"对话上下文：\n{short_memory_str}\n"
+        f"{analysis_block}"
         f"当前时间：{current_time}\n"
         f"对方最新消息：{msg_clean}\n"
         "请用日常聊天语气简短回复。"
     )
 
 
-def _retrieve_examples(vector_collection, short_memory_str, msg_clean):
-    """从向量库检索相似样本，并兼容旧数据结构回退重建。"""
+def _retrieve_examples(vector_collection, short_memory_str: str, msg_clean: str) -> str:
     if vector_collection is None or not msg_clean:
         return ""
 
@@ -163,9 +211,14 @@ def get_smart_reply(
     llm_client=None,
     vector_collection=None,
     now: Optional[datetime.datetime] = None,
+    analysis_context: Optional[Dict[str, Any]] = None,
 ):
-    """综合短期记忆和向量示例，调用 LLM 生成最终回复。"""
     try:
+        # Intent-aware fast branch for known categories.
+        quick_reply = _intent_quick_reply(msg, analysis_context)
+        if quick_reply:
+            return quick_reply
+
         msg_clean = clean_text_safe(msg)
         now_dt = now or datetime.datetime.now()
         current_time = now_dt.strftime("%Y-%m-%d %H:%M")
@@ -177,7 +230,8 @@ def get_smart_reply(
         if active_client is None:
             return FALLBACK_REPLY
 
-        prompt = _build_prompt(msg_clean, short_memory_str, examples, current_time)
+        analysis_text = _analysis_to_text(analysis_context)
+        prompt = _build_prompt(msg_clean, short_memory_str, examples, current_time, analysis_text)
         response = active_client.chat.completions.create(
             model=settings.model_name,
             messages=[

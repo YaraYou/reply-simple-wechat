@@ -1,14 +1,18 @@
+﻿from __future__ import annotations
+
 from loguru import logger
 import time
 import sys
 import random
+import datetime as dt
 
+from analyzer import MessageAnalyzer
 from config import settings
+from reminders import ReminderStore
 from wechat_client import WeChatClient
 from memory import short_memory
 import reply
 from utils import clean_text_safe
-from memory_policy import classify_message, get_policy
 
 logger.remove()
 logger.add(sys.stdout, level="INFO", format="{time} | {level} | {message}")
@@ -16,7 +20,7 @@ logger.add("bot.log", rotation="10 MB", retention="7 days", level="DEBUG")
 
 
 def add_to_vector_db(user_msg, assistant_msg):
-    """将最新一轮用户/助手消息写入向量库，供后续检索示例使用。"""
+    """Persist current dialogue turn into vector DB for retrieval-augmented style examples."""
     current_collection = reply.get_collection()
     if current_collection is None:
         logger.debug("Vector DB unavailable, skip incremental save")
@@ -41,46 +45,72 @@ def add_to_vector_db(user_msg, assistant_msg):
         logger.error(f"Failed to add message pair to vector db: {e}")
 
 
+def _process_due_reminders(client: WeChatClient, reminder_store: ReminderStore, now_dt: dt.datetime):
+    due_tasks = reminder_store.pop_due_tasks(now=now_dt)
+    for task in due_tasks:
+        reminder_text = f"提醒：{task.summary}"
+        client.send_message(reminder_text)
+        logger.info(f"Triggered reminder task={task.id} sender={task.sender} due_at={task.due_at}")
+
+
+def _handle_task_intent(analysis, sender: str, raw_message: str, reminder_store: ReminderStore, now_dt: dt.datetime):
+    """Persist task reminders locally; execution happens in due-task polling."""
+    task = reminder_store.add_task_from_analysis(
+        sender=sender,
+        raw_message=raw_message,
+        analysis=analysis.to_dict(),
+        now=now_dt,
+    )
+    if task is not None:
+        logger.info(f"Task stored id={task.id} due_at={task.due_at}")
+
+
 def main():
-    """机器人主循环：收消息 -> 生成回复 -> 发送 -> 记忆与向量库落盘。"""
     logger.info("Starting WeChat bot...")
     logger.info("Make sure WeChat window is open and focused on the target chat")
     input("Press Enter to start...")
 
     client = WeChatClient()
-    logger.info("Listening for new messages...")
+    analyzer = MessageAnalyzer(mode=settings.analyzer_mode, rule_fallback=True)
+    reminder_store = ReminderStore(file_path=settings.reminders_file)
+    logger.info(f"Listening for new messages... analyzer_mode={settings.analyzer_mode}")
 
     while True:
         try:
             time.sleep(0.5)
+            now_dt = dt.datetime.now()
+            _process_due_reminders(client, reminder_store, now_dt)
 
             new_msg = client.get_new_messages()
             if not new_msg:
                 continue
 
             sender = client.get_chat_key()
-            logger.info(f"Received message: {new_msg[:50]}...")
-            reply_text = reply.daily_reply(new_msg)
+            analysis = analyzer.analyze(new_msg)
+            logger.info(f"Received message: {new_msg[:50]}... intent={analysis.intent} conf={analysis.confidence:.2f}")
 
+            if analysis.intent == "task":
+                _handle_task_intent(analysis, sender, new_msg, reminder_store, now_dt)
+
+            reply_text = reply.daily_reply(new_msg)
             if not reply_text:
                 short_mem_str = short_memory.format_for_prompt(sender)
-                reply_text = reply.get_smart_reply(sender, new_msg, short_mem_str)
+                reply_text = reply.get_smart_reply(
+                    sender,
+                    new_msg,
+                    short_mem_str,
+                    analysis_context=analyzer.to_reply_context(analysis),
+                )
 
             if len(reply_text) > settings.reply_max_length:
                 reply_text = reply_text[:settings.reply_max_length] + "..."
 
             client.send_message(reply_text)
-
-            # 根据消息内容自动识别对话类型，并使用该类型默认优先级。
-            # 兼容旧调用：即使不传 conversation_type/priority，add_round 仍可运行。
-            conversation_type = classify_message(new_msg)
-            priority = get_policy(conversation_type).default_priority
             short_memory.add_round(
                 sender,
                 new_msg,
                 reply_text,
-                conversation_type=conversation_type,
-                priority=priority,
+                **analyzer.to_memory_kwargs(analysis),
             )
 
             add_to_vector_db(new_msg, reply_text)

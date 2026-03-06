@@ -4,146 +4,166 @@
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows&logoColor=white)
-![Tests](https://img.shields.io/badge/Tests-unittest-brightgreen)
-![Status](https://img.shields.io/badge/Status-Active-success)
-![License](https://img.shields.io/badge/License-Unknown-lightgrey)
+![Tests](https://img.shields.io/badge/tests-unittest%20(23%20passed)-brightgreen)
+![Architecture](https://img.shields.io/badge/architecture-rule--based%20intent-orange)
+![Status](https://img.shields.io/badge/status-active-success)
 
-一个基于 **微信桌面自动化 + 规则分类 + 多轮短期记忆 + 向量检索 + LLM** 的个人助手。
+微信个人助手：**桌面自动化 + 消息分类 + 多轮记忆 + 向量检索 + LLM 回复**。
 
 </div>
 
 ## Highlights
-- 自动读取微信新消息（OCR）
-- 自动发送回复（GUI 自动化）
-- 规则优先、LLM 兜底的双层回复策略
-- 多轮短期记忆（按类型/优先级/粘性策略管理）
-- Chroma 向量检索（历史风格参考）
-- 覆盖核心逻辑的单元测试
+- 微信消息自动读取（OCR）与自动发送（GUI 自动化）
+- 规则引擎消息分类（问候/问题/任务/反馈/闲聊）
+- 分类型处理逻辑（例如任务类快速确认、问题类走智能检索）
+- 多轮短期记忆（类型+优先级+全局裁剪）
+- 向量库检索历史对话示例，增强回复风格一致性
+- 单元测试覆盖核心链路（当前 `23 passed`）
 
-## Architecture
+---
+
+## 架构图
 ```mermaid
 graph LR
-  A["WeChat Desktop"] --> B["wechat_client.py\nOCR + GUI"]
-  B --> C["main.py\nOrchestrator"]
-  C --> D["reply.py\nRules + LLM"]
-  C --> E["memory.py\nShort-Term Memory"]
-  E --> F["memory_policy.py\nClassify + Policy"]
-  D --> G["ChromaDB\nchroma_data/"]
-  D --> H["LLM API\n(OpenAI-compatible)"]
-  C --> G
-  C --> B
-  I["config.py/.env"] --> C
-  I --> D
-  I --> B
+  U["WeChat User"] --> WC["wechat_client.py\nOCR + GUI Automation"]
+  WC --> M["main.py\nOrchestrator"]
+
+  M --> A["analyzer.py\nRule-based Intent Analyzer"]
+  A --> MEM["memory.py\nShortTermMemory"]
+  A --> R["reply.py\nIntent-aware Reply Router"]
+
+  M --> R
+  R --> VDB["ChromaDB\nchroma_data/"]
+  R --> LLM["OpenAI-compatible LLM API"]
+
+  M --> VDB
+  M --> WC
+
+  CFG["config.py + .env"] --> M
+  CFG --> R
+  CFG --> WC
+
+  POL["memory_policy.py\nRetention Policy"] --> MEM
 ```
 
-## Message Flow
+## 流程图（消息处理）
 ```mermaid
-sequenceDiagram
-  participant U as WeChat User
-  participant WC as wechat_client.py
-  participant M as main.py
-  participant R as reply.py
-  participant SM as memory.py
-  participant V as ChromaDB
+flowchart TD
+  A[收到新消息] --> B[MessageAnalyzer.analyze]
+  B --> C{intent 类型}
 
-  U->>WC: New message in chat window
-  WC->>M: get_new_messages()
-  M->>R: daily_reply(msg)
-  alt rule hit
-    R-->>M: fast reply
-  else rule miss
-    M->>SM: format_for_prompt(sender)
-    M->>R: get_smart_reply(sender,msg,context)
-    R->>V: retrieve similar examples
-    R-->>M: llm reply
-  end
-  M->>WC: send_message(reply)
-  M->>SM: add_round(sender,user,assistant,...)
-  M->>V: add_to_vector_db(user,assistant)
+  C -->|greeting| D[快速问候回复]
+  C -->|feedback| E[确认/感谢回复]
+  C -->|task| F[任务钩子处理 + 快速确认]
+  C -->|question/general| G[构建上下文 + 向量检索 + LLM]
+
+  D --> H[发送回复]
+  E --> H
+  F --> H
+  G --> H
+
+  H --> I[写入 ShortTermMemory\n含 intent/entities/summary/priority]
+  I --> J[增量写入向量库]
 ```
 
-## Repository Structure
+---
+
+## 项目结构
 ```text
 .
-├─ main.py                  # 主流程编排
-├─ wechat_client.py         # 微信窗口操作、OCR、发送
-├─ reply.py                 # 规则回复 + LLM 回复 + 向量检索
-├─ memory.py                # 多轮短期记忆
-├─ memory_policy.py         # 对话分类与记忆策略
-├─ config.py                # 配置加载
+├─ main.py                  # 主流程：收消息->分析->路由回复->发送->记忆/向量落盘
+├─ analyzer.py              # 规则引擎消息分析（intent/entities/summary/priority）
+├─ reply.py                 # 分类型回复路由 + 智能回复（RAG + LLM）
+├─ memory.py                # 短期记忆管理（兼容旧接口，支持 analysis）
+├─ memory_policy.py         # 记忆类型策略（保留轮次、sticky 等）
+├─ wechat_client.py         # 微信窗口控制、OCR、消息去重
+├─ config.py                # 配置加载（.env）
 ├─ utils.py                 # 文本清洗
-├─ parse_chats.py           # 离线历史数据解析/入库
+├─ intent_model.py          # 预留：ML 意图分类器（sentence-transformers + LR）
+├─ parse_chats.py           # 离线聊天数据解析/向量化
 ├─ download_model.py        # 下载 embedding 模型
-├─ test_*.py                # 单元测试
-├─ chroma_data/             # 向量库目录
-└─ model_cache/             # 本地模型目录
+├─ test_analyzer.py         # 分类与分流回复测试
+├─ test_memory.py
+├─ test_memory_multiturn.py
+├─ test_review_fixes.py
+├─ test_model.py
+└─ test_send.py
 ```
 
-## Quick Start
-### 1) Environment
+---
+
+## 快速开始
+### 1) 环境要求
 - Windows
 - Python 3.10+
-- WeChat PC 已登录并可见窗口
+- 微信 PC 已登录，聊天窗口可见
 
-### 2) Install
+### 2) 安装依赖
 ```bash
 pip install loguru pydantic-settings openai
 pip install pyautogui pygetwindow pyperclip pillow numpy easyocr
-pip install chromadb sentence-transformers huggingface_hub chardet
+pip install chromadb sentence-transformers huggingface_hub chardet scikit-learn
 ```
 
-### 3) Configure
-在根目录创建 `.env`：
+### 3) 配置 `.env`
 ```env
 API_KEY=your_api_key
 ```
 
-### 4) Optional model download
-```bash
-python download_model.py
-```
-
-### 5) Run
+### 4) 运行
 ```bash
 python main.py
 ```
 
-## Memory Strategy (Multi-turn)
-- `greeting/general`: 保留较少轮
-- `question`: 保留更多轮
-- `schedule/task`: 更高优先级且 sticky（更不易被挤掉）
-- `feedback`: 保留少量
+---
 
-兼容性：
-- 旧调用仍可运行：`add_round(sender, user_msg, assistant_msg)`
-- 新参数为可选：`conversation_type`、`priority`
-- 支持类型过滤：`format_for_prompt(sender, types=[...])`
+## 消息分类与处理策略
+当前分类：
+- `greeting`：问候（你好/hello/在吗）
+- `question`：问题（问号、怎么/为什么 等）
+- `task`：任务（提醒/待办/帮我/安排 等）
+- `feedback`：反馈（谢谢/感谢/抱歉 等）
+- `general`：其他闲聊
 
-## Tests
+处理策略：
+- `greeting/feedback/task`：优先走快速分流回复（低延迟）
+- `question/general`：走智能回复链路（短期记忆 + 向量检索 + LLM）
+
+---
+
+## 与现有接口兼容性
+- `memory.add_round(sender, user_msg, assistant_msg)` 旧调用仍可用
+- 新增可选参数：`conversation_type`、`priority`、`analysis`
+- `reply.get_smart_reply(...)` 新增可选 `analysis_context`，不传不影响旧行为
+
+---
+
+## 测试
+运行：
 ```bash
 python -m unittest -v
 ```
 
-## Config Keys
-- `API_KEY`
-- `model_name`
-- `base_url`
-- `timeout`
-- `max_tokens`
-- `temperature`
-- `reply_max_length`
-- `wechat_window_width / height / x / y`
-
-## Notes
-- OCR 与窗口坐标受分辨率、缩放比例影响较大。
-- 首次加载 `easyocr` 可能较慢。
-- 请勿在日志或代码中输出密钥。
-
-## Roadmap
-- 联系人级别风格配置
-- 可视化坐标标定工具
-- 更细粒度意图分类
-- 异常监控与自动恢复
+当前状态：
+- 23 个测试通过
+- 2 个测试跳过（依赖环境/手动场景）
 
 ---
+
+## 已知限制
+- 依赖微信桌面窗口位置和 OCR，分辨率/缩放变化会影响识别效果
+- GUI 自动化在远程桌面/焦点被抢占场景下稳定性会下降
+- 任务类目前是“钩子+日志”形式，尚未接入真实提醒服务
+
+---
+
+## Roadmap
+- 接入真实任务调度（提醒/待办执行）
+- 联系人级别策略（不同人不同回复风格）
+- 更强实体识别与槽位填充
+- 将 `intent_model.py` 的 ML 分类器作为可切换后端
+
+---
+
+## 致谢
+本项目使用了：`easyocr`、`chromadb`、`sentence-transformers`、`openai` 等开源/API 生态组件。
