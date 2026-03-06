@@ -1,5 +1,5 @@
 import os
-# 设置镜像源（关键）
+# 设置镜像源
 os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
 
 from huggingface_hub import snapshot_download

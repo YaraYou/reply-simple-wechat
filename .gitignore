@@ -13,10 +13,10 @@ __pycache__/
 cleaned_pairs.txt
 multi_turn_examples.txt
 
-# IDE 配置（如果你之前移除了 .idea/，这里也应忽略）
+# IDE 配置
 .idea/
 
-# 聊天记录、向量库、模型缓存（这些你已经移除了，但确保 .gitignore 有它们）
+# 聊天记录、向量库、模型缓存
 chat_records/
 chroma_data/
 model_cache/
