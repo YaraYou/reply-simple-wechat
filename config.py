@@ -4,10 +4,8 @@
 class Settings(BaseSettings):
     """Project settings loaded from environment variables and .env."""
 
-<<<<<<< HEAD
-=======
+
     # 使用环境变量 API_KEY
->>>>>>> fef1fe74b900d47ed174c5a9936c9cdf3de87bce
     api_key: str = ""
     model_name: str = "ep-20260126003248-wsrww"
     base_url: str = "https://ark.cn-beijing.volces.com/api/v3"
@@ -29,8 +27,5 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 
-<<<<<<< HEAD
-=======
 # 全局配置实例。
->>>>>>> fef1fe74b900d47ed174c5a9936c9cdf3de87bce
 settings = Settings()

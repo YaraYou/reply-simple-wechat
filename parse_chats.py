@@ -6,11 +6,15 @@ import chromadb
 from chromadb.utils import embedding_functions
 from utils import clean_text_safe
 
+
+# 无效消息集合，用于过滤无用消息
 INVALID_MSGS = {
     '[表情]', '表情', '[', '[图片]', '图片', '[语音]', '语音',
     '[动画表情]', '[语音或视频通话]', '', '[破涕为笑]', '[笑哭]'
 }
 
+#聊天记录清洗
+#判断消息文本是否有效，用于过滤无意义内容（表情、图片占位符、过短文本等）
 def is_valid_message(text):
     text_clean = clean_text_safe(text)
     if not text_clean:
@@ -25,13 +29,16 @@ def is_valid_message(text):
         return False
     return True
 
+#解析单个聊天记录文件，提取出“用户消息”与“我的回复”的对话。
 def parse_single_file(filepath, my_name="我"):
+    #检测文件编码
     with open(filepath, 'rb') as f:
         raw = f.read(5000)
         result = chardet.detect(raw)
         encoding = result['encoding'] if result['encoding'] else 'utf-8'
     print(f"检测到编码: {encoding}")
 
+    #逐行读取并预处理
     with open(filepath, 'r', encoding=encoding, errors='ignore') as f:
         lines = [line.rstrip('\n') for line in f]
 
@@ -53,6 +60,7 @@ def parse_single_file(filepath, my_name="我"):
         sender = match.group(1).strip()
         i += 1
 
+        #提取消息内容并进行清洗
         content = None
         while i < n and not lines[i].strip():
             i += 1
@@ -78,6 +86,7 @@ def parse_single_file(filepath, my_name="我"):
         else:
             prev_user_msg = cleaned_user
 
+    #输出结果
     print(f"  提取到 {len(pairs)} 对有效对话")
     return pairs
 
@@ -98,8 +107,9 @@ def build_multi_turn_examples(pairs, window=3):
         examples.append(example_text)
     return examples
 
+# 主程序：遍历聊天记录文件，提取对话对，构建多轮示例，存入向量数据库
 def main():
-    chat_dir = r"D:\wechat_bot\chat_records"
+    chat_dir = r"D:\ReplySimpleWeChat\chat_records"
     my_name = "我"
 
     all_pairs = []

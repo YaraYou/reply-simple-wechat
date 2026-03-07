@@ -21,3 +21,4 @@ chat_records/
 chroma_data/
 model_cache/
 .env
+.gitignore

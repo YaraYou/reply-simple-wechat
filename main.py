@@ -18,9 +18,8 @@ logger.remove()
 logger.add(sys.stdout, level="INFO", format="{time} | {level} | {message}")
 logger.add("bot.log", rotation="10 MB", retention="7 days", level="DEBUG")
 
-
+# 将当前对话轮次持久化到向量数据库中，用于检索增强型样例。
 def add_to_vector_db(user_msg, assistant_msg):
-    """Persist current dialogue turn into vector DB for retrieval-augmented style examples."""
     current_collection = reply.get_collection()
     if current_collection is None:
         logger.debug("Vector DB unavailable, skip incremental save")
