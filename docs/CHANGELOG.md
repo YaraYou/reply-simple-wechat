@@ -1,59 +1,60 @@
-# Changelog
+﻿# Changelog
 
-> 记录项目中“实际已完成”的改动，便于回溯与发布说明。
+> 记录实际已完成的改动。
 
 ![Status](https://img.shields.io/badge/status-active-success)
 ![Format](https://img.shields.io/badge/format-keep%20a%20changelog-blue)
 
-本文件参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/) 结构。
-
 ## [Unreleased] - 2026-03-08
 
 ### Added
-- 新增 `analyzer.py`：
-  - `MessageAnalyzer` 规则引擎分类（`greeting/question/task/feedback/general`）
-  - 结构化输出：`intent/entities/sentiment/summary/priority/confidence`
-  - 与记忆/回复的映射方法：`to_memory_kwargs`、`to_reply_context`
-- 新增 `intent_model.py`：
-  - `Sentence-Transformers + LogisticRegression` 的意图分类器实现
-  - 作为 `MessageAnalyzer(mode="ml")` 的后端能力
-- 新增 `reminders.py`：
-  - `tasks.json` 本地提醒持久化
-  - 到点轮询触发（`pop_due_tasks`）
-  - 时间解析（如“明天10:30”“周五3点半”）
-- 新增测试：
-  - `test_analyzer.py`（分类、模式切换、回退、回复分流）
-  - `test_reminders.py`（提醒持久化与触发）
+- 新增 `bot/chat_models.py`
+  - `ChatMessage`：结构化聊天消息（`msg_id/sender_role/text/timestamp/raw_timestamp/bbox/confidence`）
+  - `MemoryItem`：提炼记忆项（`memory_id/owner/content/memory_type/importance/created_at/expires_at`）
+- 新增 `bot/chat_ocr_parser.py`
+  - `ChatOCRParser.parse_image(image)`：整段聊天 OCR 解析
+  - 支持 OCR 文本框按 y 轴合并、消息 ID 生成、说话人规则判断（`me/other/system`）
+  - 支持时间文本提取与标准化（保留 `raw_timestamp`）
+- 新增 `bot/conversation_manager.py`
+  - 结构化消息去重
+  - 新消息检测（重点 `other`）
+  - 最近上下文维护与格式化输出
+- 新增 `bot/memory_extractor.py`
+  - 基于规则提炼记忆：偏好、禁忌、安排、承诺、近期话题
+  - 记忆去重与重要度字段
+- 新增测试
+  - `tests/test_chat_ocr_parser.py`
+  - `tests/test_conversation_manager.py`
+  - `tests/test_memory_extractor.py`
 
 ### Changed
-- `main.py`
-  - 接入 `MessageAnalyzer` 分析流程
-  - 支持 `analyzer_mode` 配置（`rule/ml`）
-  - 新增任务意图处理钩子并写入提醒
-  - 新增到点提醒轮询触发逻辑
-- `reply.py`
-  - `get_smart_reply` 新增 `analysis_context`（可选，保持兼容）
-  - 新增按意图快速回复分支（问候/反馈/任务）
-  - 问题/普通闲聊继续走“向量检索 + LLM”路径
-- `memory.py`
-  - `add_round` 新增可选参数 `analysis`
-  - `format_for_prompt` 支持优先使用分析摘要增强上下文质量
-- `config.py`
-  - 新增配置项：`analyzer_mode`、`reminders_file`
-- `README.md`
-  - 更新为 GitHub 展示风格（徽章、架构图、流程图、能力说明）
+- `bot/wechat_client.py`
+  - 新增 `capture_chat_panel()`：截取整段聊天消息区域
+  - 保持 `send_message` 与 `get_new_messages` 旧接口不变
+- `app/main.py`
+  - 最小接入整段聊天解析链路：截图 -> OCR 结构化 -> 新消息检测 -> 记忆提炼
+  - 若结构化链路未拿到新消息，回退原 `get_new_messages()` 逻辑
+  - 回复阶段新增传入 `structured_context` 与 `memory_items`（可选）
+- `bot/reply.py`
+  - `get_smart_reply(...)` 新增可选参数
+    - `structured_context=None`
+    - `memory_items=None`
+  - 在 prompt 中可拼接结构化上下文与提炼记忆
+  - 旧调用 `get_smart_reply(sender, msg, short_memory_str)` 仍兼容
+- `docs/README.md`
+  - 更新架构图、流程图、目录结构、接口兼容说明
+  - 同步新增模块与测试状态
 
 ### Fixed
-- 统一了任务意图从“仅日志”到“可持久化 + 可触发”的闭环能力。
-- 完善了分析链路的降级机制：ML 不可用时自动回退规则分类。
+- 修复结构化时间提取误匹配顺序问题
+  - 优先匹配完整日期/昨天/星期
+  - 再匹配 `HH:MM`
 
 ### Verified
 - `python -m unittest -v`
-  - 结果：`27 passed, 2 skipped`
-
----
+  - 结果：`33 passed, 1 skipped`
 
 ## [History]
 
-> 早期提交可通过 Git 历史查看：
+> 更早版本可通过 Git 历史查看：
 > `git log --oneline`
