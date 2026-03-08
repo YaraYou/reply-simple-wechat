@@ -3,7 +3,7 @@
 import datetime
 import os
 import re
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Sequence
 
 from loguru import logger
 
@@ -148,14 +148,68 @@ def _analysis_to_text(analysis_context: Optional[Dict[str, Any]]) -> str:
     )
 
 
-def _build_prompt(msg_clean: str, short_memory_str: str, examples: str, current_time: str, analysis_text: str):
+def _structured_context_to_text(structured_context: Optional[Sequence[Any]]) -> str:
+    if not structured_context:
+        return ""
+
+    lines = []
+    role_map = {"me": "我", "other": "对方", "system": "系统"}
+    for item in structured_context:
+        role = role_map.get(getattr(item, "sender_role", ""), getattr(item, "sender_role", ""))
+        text = (getattr(item, "text", "") or "").strip()
+        if not text:
+            continue
+        ts = getattr(item, "raw_timestamp", None) or getattr(item, "timestamp", None)
+        if ts:
+            lines.append(f"{role}({ts})：{text}")
+        else:
+            lines.append(f"{role}：{text}")
+
+    if not lines:
+        return ""
+    return "结构化上下文（聊天窗口）：\n" + "\n".join(lines)
+
+
+def _memory_items_to_text(memory_items: Optional[Sequence[Any]]) -> str:
+    if not memory_items:
+        return ""
+
+    lines = []
+    for item in memory_items:
+        content = (getattr(item, "content", "") or "").strip()
+        mtype = (getattr(item, "memory_type", "") or "").strip()
+        if not content:
+            continue
+        if mtype:
+            lines.append(f"- [{mtype}] {content}")
+        else:
+            lines.append(f"- {content}")
+
+    if not lines:
+        return ""
+    return "可参考记忆：\n" + "\n".join(lines)
+
+
+def _build_prompt(
+    msg_clean: str,
+    short_memory_str: str,
+    examples: str,
+    current_time: str,
+    analysis_text: str,
+    structured_context_text: str,
+    memory_items_text: str,
+):
     analysis_block = f"{analysis_text}\n" if analysis_text else ""
+    structured_block = f"{structured_context_text}\n" if structured_context_text else ""
+    memory_block = f"{memory_items_text}\n" if memory_items_text else ""
 
     if examples:
         return (
             "以下是你过去和好友聊天的多轮对话示例（重点模仿说话风格，但必须回答当前话题）：\n"
             f"{examples}\n\n"
             f"当前对话上下文（最近几句）：\n{short_memory_str}\n"
+            f"{structured_block}"
+            f"{memory_block}"
             f"{analysis_block}"
             f"对方最新消息：{msg_clean}\n"
             "请用第一人称、日常口吻简短回复。"
@@ -163,6 +217,8 @@ def _build_prompt(msg_clean: str, short_memory_str: str, examples: str, current_
 
     return (
         f"对话上下文：\n{short_memory_str}\n"
+        f"{structured_block}"
+        f"{memory_block}"
         f"{analysis_block}"
         f"当前时间：{current_time}\n"
         f"对方最新消息：{msg_clean}\n"
@@ -207,6 +263,8 @@ def get_smart_reply(
     vector_collection=None,
     now: Optional[datetime.datetime] = None,
     analysis_context: Optional[Dict[str, Any]] = None,
+    structured_context: Optional[Sequence[Any]] = None,
+    memory_items: Optional[Sequence[Any]] = None,
 ):
     try:
         quick_reply = _intent_quick_reply(msg, analysis_context)
@@ -225,7 +283,18 @@ def get_smart_reply(
             return FALLBACK_REPLY
 
         analysis_text = _analysis_to_text(analysis_context)
-        prompt = _build_prompt(msg_clean, short_memory_str, examples, current_time, analysis_text)
+        structured_context_text = _structured_context_to_text(structured_context)
+        memory_items_text = _memory_items_to_text(memory_items)
+
+        prompt = _build_prompt(
+            msg_clean,
+            short_memory_str,
+            examples,
+            current_time,
+            analysis_text,
+            structured_context_text,
+            memory_items_text,
+        )
         response = active_client.chat.completions.create(
             model=settings.model_name,
             messages=[

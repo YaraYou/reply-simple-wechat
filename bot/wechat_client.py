@@ -19,6 +19,7 @@ class WeChatClient:
         self.input_x_ratio = 0.3533
         self.input_y_from_bottom = 95
         self.msg_bbox_offsets = (342, 478, 556, 541)
+        self.chat_panel_bbox_offsets = (250, 80, 885, 560)
 
         self.message_seen_at = {}
         self.message_dedup_window_seconds = 8
@@ -170,6 +171,27 @@ class WeChatClient:
             return text
         except Exception as e:
             logger.error(f"OCR failed: {e}")
+            return None
+
+    def capture_chat_panel(self):
+        """截取整个聊天消息区域，用于整段 OCR 解析。"""
+        win = self._get_window()
+        if not win:
+            return None
+
+        left_offset, top_offset, right_offset, bottom_offset = self.chat_panel_bbox_offsets
+        bbox = (
+            win.left + left_offset,
+            win.top + top_offset,
+            win.left + right_offset,
+            win.top + bottom_offset,
+        )
+
+        try:
+            screenshot = ImageGrab.grab(bbox=bbox)
+            return np.array(screenshot)
+        except Exception as e:
+            logger.error(f"Capture chat panel failed: {e}")
             return None
 
     def get_new_messages(self):

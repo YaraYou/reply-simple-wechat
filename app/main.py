@@ -8,6 +8,9 @@ import datetime as dt
 
 from app.config import settings
 from bot.analyzer import MessageAnalyzer
+from bot.chat_ocr_parser import ChatOCRParser
+from bot.conversation_manager import ConversationManager
+from bot.memory_extractor import MemoryExtractor
 from bot.reminders import ReminderStore
 from bot.wechat_client import WeChatClient
 from bot import reply
@@ -72,6 +75,9 @@ def main():
     client = WeChatClient()
     analyzer = MessageAnalyzer(mode=settings.analyzer_mode, rule_fallback=True)
     reminder_store = ReminderStore(file_path=settings.reminders_file)
+    chat_parser = ChatOCRParser()
+    conversation_manager = ConversationManager(max_messages=80)
+    memory_extractor = MemoryExtractor()
     logger.info(f"Listening for new messages... analyzer_mode={settings.analyzer_mode}")
 
     while True:
@@ -80,11 +86,27 @@ def main():
             now_dt = dt.datetime.now()
             _process_due_reminders(client, reminder_store, now_dt)
 
-            new_msg = client.get_new_messages()
+            structured_context = []
+            extracted_memory_items = []
+            new_other_messages = []
+
+            panel_image = client.capture_chat_panel()
+            if panel_image is not None:
+                parsed_messages = chat_parser.parse_image(panel_image)
+                if parsed_messages:
+                    new_other_messages = conversation_manager.get_new_other_messages(parsed_messages)
+                    structured_context = conversation_manager.get_recent_messages(limit=12)
+
+            new_msg = new_other_messages[-1].text if new_other_messages else None
+            if not new_msg:
+                new_msg = client.get_new_messages()
             if not new_msg:
                 continue
 
             sender = client.get_chat_key()
+            if new_other_messages:
+                extracted_memory_items = memory_extractor.extract_from_messages(new_other_messages, owner=sender)
+
             analysis = analyzer.analyze(new_msg)
             logger.info(f"Received message: {new_msg[:50]}... intent={analysis.intent} conf={analysis.confidence:.2f}")
 
@@ -99,6 +121,8 @@ def main():
                     new_msg,
                     short_mem_str,
                     analysis_context=analyzer.to_reply_context(analysis),
+                    structured_context=structured_context,
+                    memory_items=extracted_memory_items,
                 )
 
             if len(reply_text) > settings.reply_max_length:
