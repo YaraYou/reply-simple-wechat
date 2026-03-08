@@ -12,8 +12,12 @@ Updated: 2026-03-08
 - [x] 新增 `MemoryExtractor`，实现规则记忆提炼（偏好/禁忌/安排/承诺/近期话题）
 - [x] `main.py` 最小接入结构化链路，并保留旧回退路径
 - [x] `reply.py` 增加 `structured_context`、`memory_items` 可选参数，保持旧接口兼容
-- [x] 新增单测 `test_chat_ocr_parser/test_conversation_manager/test_memory_extractor`
-- [x] 全量测试通过 `33 passed, 1 skipped`
+- [x] 新增防乱回机制：只处理 `other`，屏蔽 `me/system/noise`
+- [x] 增加 `recently sent` 缓存，避免回复自己刚发的消息
+- [x] 增加 `processed_msg_ids` 去重与两次稳定确认机制
+- [x] 隔离 `internal_reminder`，启动时 overdue 不直接注入普通链路
+- [x] analyzer 新增 `noise/system/self_echo` 防误判意图
+- [x] 全量测试通过 `42 passed, 1 skipped`
 
 ## Next
 
@@ -36,6 +40,8 @@ Updated: 2026-03-08
 - [ ] 基于结构化上下文优化 intent 路由优先级
 - [ ] 将任务类消息与提醒系统打通回执闭环
 - [ ] 降低端到端延迟抖动
+- [ ] 继续增强说话人识别鲁棒性（复杂布局/头像遮挡场景）
+- [ ] 时间戳解析增强（跨天跨周边界）
 
 ## Config Targets
 - `ANALYZER_MODE=rule|ml`

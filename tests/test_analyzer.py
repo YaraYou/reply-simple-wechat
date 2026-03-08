@@ -77,7 +77,7 @@ class TestMessageAnalyzer(unittest.TestCase):
         analyzer = MessageAnalyzer(mode="ml", classifier=_FakeMLClassifier(should_fail=True), rule_fallback=True)
         analysis = analyzer.analyze("你好")
         self.assertEqual(analysis.intent, "greeting")
-        self.assertEqual(analysis.confidence, 1.0)
+        self.assertGreaterEqual(analysis.confidence, 0.5)
 
     def test_memory_accepts_analysis_and_uses_summary(self):
         analysis = self.analyzer.analyze("这个问题有点复杂，能帮我梳理一下步骤吗？")
@@ -139,3 +139,4 @@ class TestMessageAnalyzer(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

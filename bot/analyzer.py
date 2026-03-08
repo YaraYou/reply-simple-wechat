@@ -13,6 +13,9 @@ INTENT_TO_MEMORY_TYPE = {
     "task": "task",
     "feedback": "feedback",
     "general": "general",
+    "noise": "general",
+    "system": "general",
+    "self_echo": "general",
 }
 
 PRIORITY_BY_INTENT = {
@@ -21,6 +24,9 @@ PRIORITY_BY_INTENT = {
     "general": 1,
     "question": 2,
     "task": 4,
+    "noise": 0,
+    "system": 0,
+    "self_echo": 0,
 }
 
 
@@ -57,12 +63,30 @@ class MessageAnalyzer:
         self.intent_patterns = [
             ("greeting", [r"\b(hi|hello|hey)\b", r"你好|您好|在吗|在不|早上好|晚上好|晚安"]),
             ("feedback", [r"谢谢|感谢|辛苦了|多谢", r"抱歉|对不起|不好意思|sorry|thx"]),
-            ("task", [r"提醒|待办|任务|todo|安排|跟进|处理|提交", r"帮我|记得|需要你"]),
+            ("task", [r"待办|任务|todo|安排|跟进|处理|提交", r"帮我|记得|需要你"]),
             ("question", [r"[?？]", r"怎么|为何|为什么|啥|什么|能不能|可不可以|是否"]),
         ]
 
-    def analyze(self, message: str) -> MessageAnalysis:
+    def analyze(
+        self,
+        message: str,
+        sender_role: Optional[str] = None,
+        is_timestamp: bool = False,
+        is_noise: bool = False,
+        source: Optional[str] = None,
+    ) -> MessageAnalysis:
         text = (message or "").strip()
+
+        early_intent, early_conf = self._pre_classify(text, sender_role, is_timestamp, is_noise, source)
+        if early_intent is not None:
+            return MessageAnalysis(
+                intent=early_intent,
+                entities={},
+                sentiment="neutral",
+                summary=self._summarize(text),
+                priority=self._resolve_priority(early_intent, "neutral"),
+                confidence=early_conf,
+            )
 
         intent, confidence = self._classify_intent(text)
         entities = self._extract_entities(text)
@@ -79,10 +103,32 @@ class MessageAnalyzer:
             confidence=confidence,
         )
 
-    def _classify_intent(self, text: str) -> tuple[str, float]:
-        if not text:
-            return "general", 1.0
+    def _pre_classify(
+        self,
+        text: str,
+        sender_role: Optional[str],
+        is_timestamp: bool,
+        is_noise: bool,
+        source: Optional[str],
+    ) -> tuple[Optional[str], float]:
+        if source in {"internal_reminder", "internal_task", "self_echo", "assistant"}:
+            return "self_echo", 0.01
 
+        if sender_role == "me":
+            return "self_echo", 0.01
+
+        if sender_role == "system" or is_timestamp:
+            return "system", 0.02
+
+        if is_noise or self._looks_like_noise_text(text):
+            return "noise", 0.01
+
+        if not text:
+            return "noise", 0.0
+
+        return None, 0.0
+
+    def _classify_intent(self, text: str) -> tuple[str, float]:
         if self.mode == "ml":
             label, confidence = self._classify_by_ml(text)
             if label is not None:
@@ -90,7 +136,9 @@ class MessageAnalyzer:
             if not self.rule_fallback:
                 return "general", 0.0
 
-        return self._classify_by_rule(text), 1.0
+        intent = self._classify_by_rule(text)
+        confidence = 0.85 if intent != "general" else 0.6
+        return intent, confidence
 
     def _classify_by_ml(self, text: str) -> tuple[Optional[str], float]:
         if self._classifier_error:
@@ -112,9 +160,23 @@ class MessageAnalyzer:
 
     def _classify_by_rule(self, text: str) -> str:
         for intent, patterns in self.intent_patterns:
+            if intent == "task" and not self._is_valid_task_text(text):
+                continue
             if any(re.search(pattern, text, flags=re.IGNORECASE) for pattern in patterns):
                 return intent
         return "general"
+
+    def _is_valid_task_text(self, text: str) -> bool:
+        # 仅出现“提醒”不足以认定 task，需搭配动作或时间信息
+        has_reminder = bool(re.search(r"提醒", text))
+        has_action = bool(re.search(r"帮我|记得|需要你|安排|跟进|处理|提交|设置", text))
+        has_time = bool(re.search(r"明天|后天|今天|今晚|下周|周[一二三四五六日天]|\d{1,2}[:：]\d{2}|\d{1,2}点", text))
+
+        if has_action:
+            return True
+        if has_reminder and has_time:
+            return True
+        return False
 
     def _extract_entities(self, text: str) -> Dict[str, Any]:
         if not text:
@@ -171,6 +233,20 @@ class MessageAnalyzer:
         if sentiment == "negative":
             return min(base + 1, 5)
         return base
+
+    def _looks_like_noise_text(self, text: str) -> bool:
+        t = (text or "").strip()
+        if not t:
+            return True
+        if re.fullmatch(r"[;:：，。,.!?？！\-_/\\\s]+", t):
+            return True
+        if re.fullmatch(r"\d{1,3}", t):
+            return True
+        if re.fullmatch(r"\d{1,3}[\s;:：]+\d{1,3}([\s;:：]+\d{1,3})?", t):
+            return True
+        if re.fullmatch(r"\d{1,2}:\d{2}", t):
+            return True
+        return False
 
     def to_memory_kwargs(self, analysis: MessageAnalysis) -> Dict[str, Any]:
         return {

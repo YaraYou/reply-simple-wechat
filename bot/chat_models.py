@@ -15,6 +15,9 @@ class ChatMessage:
     raw_timestamp: Optional[str] = None
     bbox: Tuple[int, int, int, int] = (0, 0, 0, 0)
     confidence: float = 0.0
+    is_timestamp: bool = False
+    is_noise: bool = False
+    source: Optional[str] = None  # normal | internal_reminder | self_echo
 
 
 @dataclass

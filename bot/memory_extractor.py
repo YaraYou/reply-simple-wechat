@@ -17,10 +17,19 @@ class MemoryExtractor:
     def extract_from_messages(self, messages: List[ChatMessage], owner: str = "other") -> List[MemoryItem]:
         items: List[MemoryItem] = []
         for msg in messages:
-            if msg.sender_role != "other":
+            if not self._is_valid_memory_source(msg):
                 continue
             items.extend(self.extract_from_text(msg.text, owner=owner))
         return items
+
+    def _is_valid_memory_source(self, msg: ChatMessage) -> bool:
+        if msg.sender_role != "other":
+            return False
+        if msg.is_timestamp or msg.is_noise:
+            return False
+        if (msg.source or "") in {"self_echo", "internal_reminder", "internal_task"}:
+            return False
+        return True
 
     def extract_from_text(self, text: str, owner: str = "other") -> List[MemoryItem]:
         text = (text or "").strip()

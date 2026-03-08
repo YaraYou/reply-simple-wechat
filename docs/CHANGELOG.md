@@ -9,50 +9,60 @@
 
 ### Added
 - 新增 `bot/chat_models.py`
-  - `ChatMessage`：结构化聊天消息（`msg_id/sender_role/text/timestamp/raw_timestamp/bbox/confidence`）
-  - `MemoryItem`：提炼记忆项（`memory_id/owner/content/memory_type/importance/created_at/expires_at`）
-- 新增 `bot/chat_ocr_parser.py`
-  - `ChatOCRParser.parse_image(image)`：整段聊天 OCR 解析
-  - 支持 OCR 文本框按 y 轴合并、消息 ID 生成、说话人规则判断（`me/other/system`）
-  - 支持时间文本提取与标准化（保留 `raw_timestamp`）
-- 新增 `bot/conversation_manager.py`
-  - 结构化消息去重
-  - 新消息检测（重点 `other`）
-  - 最近上下文维护与格式化输出
-- 新增 `bot/memory_extractor.py`
-  - 基于规则提炼记忆：偏好、禁忌、安排、承诺、近期话题
-  - 记忆去重与重要度字段
-- 新增测试
+  - `ChatMessage` 增加结构化字段：`is_timestamp/is_noise/source/msg_id`
+  - `MemoryItem` 保持可扩展记忆结构
+- 新增防乱回测试
+  - `tests/test_self_echo.py`
+  - `tests/test_reminder_isolation.py`
+  - `tests/test_analyzer_noise_guard.py`
+- 扩展已有测试
   - `tests/test_chat_ocr_parser.py`
   - `tests/test_conversation_manager.py`
-  - `tests/test_memory_extractor.py`
 
 ### Changed
+- `bot/chat_ocr_parser.py`
+  - 增加时间戳识别与噪声碎片识别
+  - 输出 `sender_role/is_timestamp/is_noise/raw_timestamp/confidence/msg_id`
+  - `msg_id` 改为归一化文本 + 粗粒度位置生成，降低 OCR 抖动影响
+- `bot/conversation_manager.py`
+  - 增加硬过滤：仅允许 `other` 且非 `timestamp/noise/internal/self_echo`
+  - 增加 `processed_msg_ids` 去重
+  - 增加“两次稳定出现才确认新消息”机制
 - `bot/wechat_client.py`
-  - 新增 `capture_chat_panel()`：截取整段聊天消息区域
-  - 保持 `send_message` 与 `get_new_messages` 旧接口不变
+  - 发送后写入 recently sent 缓存
+  - 新增 self echo 匹配方法，避免回声消息再次进入回复链
 - `app/main.py`
-  - 最小接入整段聊天解析链路：截图 -> OCR 结构化 -> 新消息检测 -> 记忆提炼
-  - 若结构化链路未拿到新消息，回退原 `get_new_messages()` 逻辑
-  - 回复阶段新增传入 `structured_context` 与 `memory_items`（可选）
+  - 接入新过滤链路与消息元信息
+  - reminder 发送标记 `internal_reminder`
+  - 启动时 overdue reminder 不再直接注入普通回复链
+- `bot/analyzer.py`
+  - 新增 `noise/system/self_echo` 意图
+  - 垃圾输入降置信度，不再高置信度误判
+  - task 规则增加前置约束，避免“提醒”关键词误触发
 - `bot/reply.py`
-  - `get_smart_reply(...)` 新增可选参数
-    - `structured_context=None`
-    - `memory_items=None`
-  - 在 prompt 中可拼接结构化上下文与提炼记忆
-  - 旧调用 `get_smart_reply(sender, msg, short_memory_str)` 仍兼容
-- `docs/README.md`
-  - 更新架构图、流程图、目录结构、接口兼容说明
-  - 同步新增模块与测试状态
+  - 增加最后一道 skip 防线
+  - 命中 `system/noise/self_echo/短碎片` 时拒绝生成回复
+- `bot/memory_extractor.py`
+  - 过滤 `me/system/noise/self_echo/internal_reminder`，避免自说自话入记忆
+- `bot/reminders.py`
+  - 增加 `source` 和 `overdue` 字段
+  - 支持 `allow_overdue=False` 的安全弹出策略
 
 ### Fixed
-- 修复结构化时间提取误匹配顺序问题
-  - 优先匹配完整日期/昨天/星期
-  - 再匹配 `HH:MM`
+- 修复 OCR 自激回声 / 已读乱回
+  - 不再回复自己刚发送的消息
+  - 不再回复时间戳/日期/OCR 碎片
+  - internal reminder 不再回流普通聊天链路
 
 ### Verified
 - `python -m unittest -v`
-  - 结果：`33 passed, 1 skipped`
+  - 结果：`42 passed, 1 skipped`
+
+### Docs
+- 更新 `docs/README.md`
+- 更新 `docs/troubleshooting.md`
+- 更新 `docs/ROADMAP.md`
+- 更新 `docs/CHANGELOG.md`
 
 ## [History]
 

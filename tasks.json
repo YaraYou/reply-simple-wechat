@@ -5,7 +5,9 @@
     "summary": "你还记得我叫你干嘛吗",
     "due_at": "2026-03-08T22:14:17",
     "created_at": "2026-03-08T21:44:17",
-    "triggered": true
+    "triggered": true,
+    "source": "user_task",
+    "overdue": false
   },
   {
     "id": "11bcf85ae2ca4d32a31b18819b3c8f53",
@@ -13,7 +15,9 @@
     "summary": "29 提醒: 你还记得我叫你干嘛吗",
     "due_at": "2026-03-08T23:27:04",
     "created_at": "2026-03-08T22:57:04",
-    "triggered": false
+    "triggered": true,
+    "source": "user_task",
+    "overdue": true
   },
   {
     "id": "a41bda4b19b34e79b2bb288863adbe0f",
@@ -21,7 +25,9 @@
     "summary": "29 收到。我先记下这个任务",
     "due_at": "2026-03-08T23:27:17",
     "created_at": "2026-03-08T22:57:17",
-    "triggered": false
+    "triggered": true,
+    "source": "user_task",
+    "overdue": true
   },
   {
     "id": "caa2589c795745cf8ebbffea8be5225c",
@@ -29,6 +35,8 @@
     "summary": "20 提醒: 你还记得我叫你干嘛吗",
     "due_at": "2026-03-08T23:27:36",
     "created_at": "2026-03-08T22:57:36",
-    "triggered": false
+    "triggered": true,
+    "source": "user_task",
+    "overdue": true
   }
 ]

@@ -255,6 +255,46 @@ def _retrieve_examples(vector_collection, short_memory_str: str, msg_clean: str)
     return ""
 
 
+def _looks_like_garbage_input(text: str) -> bool:
+    t = (text or "").strip()
+    if not t:
+        return True
+    if re.fullmatch(r"\d{1,3}", t):
+        return True
+    if re.fullmatch(r"\d{1,2}:\d{2}", t):
+        return True
+    if re.fullmatch(r"\d{1,3}[\s;:：]+\d{1,3}([\s;:：]+\d{1,3})?", t):
+        return True
+    return False
+
+
+def _should_skip_reply(
+    msg: str,
+    analysis_context: Optional[Dict[str, Any]],
+    message_meta: Optional[Dict[str, Any]],
+    recently_sent_match: bool,
+) -> bool:
+    if recently_sent_match:
+        return True
+
+    if _looks_like_garbage_input(msg):
+        return True
+
+    if analysis_context:
+        if analysis_context.get("intent") in {"noise", "system", "self_echo"}:
+            return True
+
+    if message_meta:
+        if message_meta.get("is_noise") or message_meta.get("is_timestamp"):
+            return True
+        if message_meta.get("sender_role") in {"me", "system"}:
+            return True
+        if message_meta.get("source") in {"self_echo", "internal_reminder", "internal_task"}:
+            return True
+
+    return False
+
+
 def get_smart_reply(
     sender,
     msg,
@@ -265,8 +305,13 @@ def get_smart_reply(
     analysis_context: Optional[Dict[str, Any]] = None,
     structured_context: Optional[Sequence[Any]] = None,
     memory_items: Optional[Sequence[Any]] = None,
+    message_meta: Optional[Dict[str, Any]] = None,
+    recently_sent_match: bool = False,
 ):
     try:
+        if _should_skip_reply(msg, analysis_context, message_meta, recently_sent_match):
+            return None
+
         quick_reply = _intent_quick_reply(msg, analysis_context)
         if quick_reply:
             return quick_reply

@@ -29,6 +29,8 @@ class ReminderTask:
     due_at: str
     created_at: str
     triggered: bool = False
+    source: str = "user_task"
+    overdue: bool = False
 
 
 class ReminderStore:
@@ -63,6 +65,8 @@ class ReminderStore:
             due_at=due_at.isoformat(timespec="seconds"),
             created_at=now_dt.isoformat(timespec="seconds"),
             triggered=False,
+            source="user_task",
+            overdue=False,
         )
 
         items = self._load()
@@ -70,7 +74,12 @@ class ReminderStore:
         self._save(items)
         return task
 
-    def pop_due_tasks(self, now: Optional[dt.datetime] = None) -> list[ReminderTask]:
+    def pop_due_tasks(
+        self,
+        now: Optional[dt.datetime] = None,
+        allow_overdue: bool = True,
+        overdue_before: Optional[dt.datetime] = None,
+    ) -> list[ReminderTask]:
         now_dt = now or dt.datetime.now()
         items = self._load()
 
@@ -87,18 +96,34 @@ class ReminderStore:
             except ValueError:
                 continue
 
-            if due_at <= now_dt:
+            if due_at > now_dt:
+                continue
+
+            is_overdue = overdue_before is not None and due_at < overdue_before
+            if is_overdue and not allow_overdue:
+                item["overdue"] = True
                 item["triggered"] = True
                 changed = True
-                due.append(ReminderTask(**item))
+                continue
+
+            item["triggered"] = True
+            changed = True
+            due.append(ReminderTask(**self._normalize_item(item)))
 
         if changed:
             self._save(items)
         return due
 
+    def _normalize_item(self, item: Dict[str, Any]) -> Dict[str, Any]:
+        normalized = dict(item)
+        normalized.setdefault("source", "user_task")
+        normalized.setdefault("overdue", False)
+        return normalized
+
     def _load(self) -> list[Dict[str, Any]]:
         try:
-            return json.loads(self.file_path.read_text(encoding="utf-8"))
+            rows = json.loads(self.file_path.read_text(encoding="utf-8"))
+            return [self._normalize_item(it) for it in rows]
         except Exception:
             return []
 

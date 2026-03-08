@@ -39,7 +39,9 @@ class ChatOCRParser:
                 continue
 
             raw_ts, parsed_ts = self._extract_timestamp(text)
-            sender_role = self._classify_sender(block["bbox"], width, text, raw_ts)
+            is_timestamp = raw_ts is not None
+            is_noise = self._is_noise_text(text)
+            sender_role = self._classify_sender(block["bbox"], width, text, is_timestamp)
             msg_id = self._build_msg_id(sender_role, text, raw_ts, block["bbox"])
 
             messages.append(
@@ -51,6 +53,9 @@ class ChatOCRParser:
                     raw_timestamp=raw_ts,
                     bbox=block["bbox"],
                     confidence=float(block.get("confidence", 0.0)),
+                    is_timestamp=is_timestamp,
+                    is_noise=is_noise,
+                    source="normal",
                 )
             )
 
@@ -159,16 +164,16 @@ class ChatOCRParser:
         bbox: Tuple[int, int, int, int],
         panel_width: int,
         text: str,
-        raw_timestamp: Optional[str],
+        is_timestamp: bool,
     ) -> str:
         x1, _, x2, _ = bbox
         center_x = (x1 + x2) / 2.0
         norm_x = center_x / max(1, panel_width)
 
-        if raw_timestamp and 0.35 <= norm_x <= 0.65:
+        if is_timestamp and 0.30 <= norm_x <= 0.70:
             return "system"
 
-        if self._looks_like_system_text(text) and 0.3 <= norm_x <= 0.7:
+        if self._looks_like_system_text(text) and 0.30 <= norm_x <= 0.70:
             return "system"
 
         if norm_x <= 0.45:
@@ -181,16 +186,21 @@ class ChatOCRParser:
         t = text.strip()
         if not t:
             return False
-        if t in {"以下为新消息", "以上是打招呼的内容", "消息已发出"}:
+        if t in {"以下为新消息", "以上是打招呼的内容", "消息已发出", "撤回了一条消息"}:
             return True
-        return bool(re.fullmatch(r"\d{1,2}:\d{2}", t))
+        if re.fullmatch(r"\d{1,2}:\d{2}", t):
+            return True
+        if re.fullmatch(r"\d{4}[/-]\d{1,2}[/-]\d{1,2}", t):
+            return True
+        return False
 
     def _extract_timestamp(self, text: str) -> Tuple[Optional[str], Optional[str]]:
         patterns = [
             r"\d{4}[/-]\d{1,2}[/-]\d{1,2}\s+\d{1,2}:\d{2}",
-            r"\u6628\u5929\s*\d{1,2}:\d{2}",
-            r"\u661f\u671f[\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u65e5\u5929]\s*\d{1,2}:\d{2}",
+            r"昨天\s*\d{1,2}:\d{2}",
+            r"星期[一二三四五六日天]\s*\d{1,2}:\d{2}",
             r"\b\d{1,2}:\d{2}\b",
+            r"\d{4}[/-]\d{1,2}[/-]\d{1,2}",
         ]
         for p in patterns:
             m = re.search(p, text)
@@ -205,9 +215,12 @@ class ChatOCRParser:
         raw = raw.strip()
         now = dt.datetime.now()
 
-        for fmt in ("%Y/%m/%d %H:%M", "%Y-%m-%d %H:%M"):
+        for fmt in ("%Y/%m/%d %H:%M", "%Y-%m-%d %H:%M", "%Y/%m/%d", "%Y-%m-%d"):
             try:
-                return dt.datetime.strptime(raw, fmt).isoformat(timespec="minutes")
+                parsed = dt.datetime.strptime(raw, fmt)
+                if "%H" in fmt:
+                    return parsed.isoformat(timespec="minutes")
+                return parsed.isoformat(timespec="minutes")
             except ValueError:
                 continue
 
@@ -234,6 +247,29 @@ class ChatOCRParser:
 
         return None
 
+    def _is_noise_text(self, text: str) -> bool:
+        t = self._normalize_text(text)
+        if not t:
+            return True
+
+        # 纯标点短碎片
+        if re.fullmatch(r"[;:：，。,.!?？！\-_/\\\s]+", t):
+            return True
+
+        # 纯数字短文本，如 29 / 20
+        if re.fullmatch(r"\d{1,3}", t):
+            return True
+
+        # 典型 OCR 时间噪声碎片，如 29 22;56 / 29 29
+        if re.fullmatch(r"\d{1,3}[\s;:：]+\d{1,3}([\s;:：]+\d{1,3})?", t):
+            return True
+
+        # 过短且不包含中文英文
+        if len(t) <= 2 and not re.search(r"[\u4e00-\u9fffA-Za-z]", t):
+            return True
+
+        return False
+
     def _build_msg_id(
         self,
         sender_role: str,
@@ -241,7 +277,10 @@ class ChatOCRParser:
         raw_timestamp: Optional[str],
         bbox: Tuple[int, int, int, int],
     ) -> str:
-        payload = f"{sender_role}|{text}|{raw_timestamp or ''}|{bbox[0]}|{bbox[1]}|{bbox[2]}|{bbox[3]}"
+        norm_text = self.normalize_for_compare(text)
+        # 采用粗粒度坐标，降低 OCR 抖动造成的重复误判
+        qbbox = tuple(int(v / 10) for v in bbox)
+        payload = f"{sender_role}|{norm_text}|{raw_timestamp or ''}|{qbbox[0]}|{qbbox[1]}|{qbbox[2]}|{qbbox[3]}"
         return hashlib.sha1(payload.encode("utf-8")).hexdigest()[:16]
 
     def _normalize_text(self, text: str) -> str:
@@ -249,3 +288,11 @@ class ChatOCRParser:
             return ""
         text = re.sub(r"\s+", " ", text)
         return text.strip()
+
+    @staticmethod
+    def normalize_for_compare(text: str) -> str:
+        if not isinstance(text, str):
+            return ""
+        value = text.strip().lower()
+        value = re.sub(r"[\s;:：，。,.!?？！\-_/\\]+", "", value)
+        return value

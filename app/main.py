@@ -48,11 +48,16 @@ def add_to_vector_db(user_msg, assistant_msg):
         logger.error(f"Failed to add message pair to vector db: {e}")
 
 
-def _process_due_reminders(client: WeChatClient, reminder_store: ReminderStore, now_dt: dt.datetime):
-    due_tasks = reminder_store.pop_due_tasks(now=now_dt)
+def _process_due_reminders(
+    client: WeChatClient,
+    reminder_store: ReminderStore,
+    now_dt: dt.datetime,
+    bot_start_time: dt.datetime,
+):
+    due_tasks = reminder_store.pop_due_tasks(now=now_dt, allow_overdue=False, overdue_before=bot_start_time)
     for task in due_tasks:
         reminder_text = f"提醒：{task.summary}"
-        client.send_message(reminder_text)
+        client.send_message(reminder_text, source="internal_reminder")
         logger.info(f"Triggered reminder task={task.id} sender={task.sender} due_at={task.due_at}")
 
 
@@ -76,19 +81,22 @@ def main():
     analyzer = MessageAnalyzer(mode=settings.analyzer_mode, rule_fallback=True)
     reminder_store = ReminderStore(file_path=settings.reminders_file)
     chat_parser = ChatOCRParser()
-    conversation_manager = ConversationManager(max_messages=80)
+    conversation_manager = ConversationManager(max_messages=80, min_confidence=0.35, confirm_rounds=2)
+    conversation_manager.set_recently_sent_matcher(client.match_recently_sent)
     memory_extractor = MemoryExtractor()
+    bot_start_time = dt.datetime.now()
+
     logger.info(f"Listening for new messages... analyzer_mode={settings.analyzer_mode}")
 
     while True:
         try:
             time.sleep(0.5)
             now_dt = dt.datetime.now()
-            _process_due_reminders(client, reminder_store, now_dt)
+            _process_due_reminders(client, reminder_store, now_dt, bot_start_time)
 
             structured_context = []
             extracted_memory_items = []
-            new_other_messages = []
+            candidate_msg = None
 
             panel_image = client.capture_chat_panel()
             if panel_image is not None:
@@ -96,18 +104,50 @@ def main():
                 if parsed_messages:
                     new_other_messages = conversation_manager.get_new_other_messages(parsed_messages)
                     structured_context = conversation_manager.get_recent_messages(limit=12)
+                    if new_other_messages:
+                        candidate_msg = new_other_messages[-1]
+                        extracted_memory_items = memory_extractor.extract_from_messages(new_other_messages, owner="other")
 
-            new_msg = new_other_messages[-1].text if new_other_messages else None
-            if not new_msg:
+            message_meta = None
+            if candidate_msg is not None:
+                new_msg = candidate_msg.text
+                message_meta = {
+                    "sender_role": candidate_msg.sender_role,
+                    "is_timestamp": candidate_msg.is_timestamp,
+                    "is_noise": candidate_msg.is_noise,
+                    "source": candidate_msg.source,
+                    "confidence": candidate_msg.confidence,
+                    "msg_id": candidate_msg.msg_id,
+                }
+            else:
                 new_msg = client.get_new_messages()
+                if new_msg:
+                    recent_source = client.match_recently_sent(new_msg)
+                    message_meta = {
+                        "sender_role": "other",
+                        "is_timestamp": False,
+                        "is_noise": False,
+                        "source": recent_source,
+                        "confidence": 1.0,
+                        "msg_id": None,
+                    }
+
             if not new_msg:
                 continue
 
             sender = client.get_chat_key()
-            if new_other_messages:
-                extracted_memory_items = memory_extractor.extract_from_messages(new_other_messages, owner=sender)
+            analysis = analyzer.analyze(
+                new_msg,
+                sender_role=(message_meta or {}).get("sender_role"),
+                is_timestamp=bool((message_meta or {}).get("is_timestamp")),
+                is_noise=bool((message_meta or {}).get("is_noise")),
+                source=(message_meta or {}).get("source"),
+            )
 
-            analysis = analyzer.analyze(new_msg)
+            if analysis.intent in {"noise", "system", "self_echo"}:
+                logger.debug(f"Skip message by guard: {new_msg[:40]} intent={analysis.intent}")
+                continue
+
             logger.info(f"Received message: {new_msg[:50]}... intent={analysis.intent} conf={analysis.confidence:.2f}")
 
             if analysis.intent == "task":
@@ -123,12 +163,17 @@ def main():
                     analysis_context=analyzer.to_reply_context(analysis),
                     structured_context=structured_context,
                     memory_items=extracted_memory_items,
+                    message_meta=message_meta,
+                    recently_sent_match=client.is_recently_sent(new_msg),
                 )
+
+            if not reply_text:
+                continue
 
             if len(reply_text) > settings.reply_max_length:
                 reply_text = reply_text[:settings.reply_max_length] + "..."
 
-            client.send_message(reply_text)
+            client.send_message(reply_text, source="assistant")
             short_memory.add_round(
                 sender,
                 new_msg,

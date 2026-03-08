@@ -1,5 +1,7 @@
 ﻿import hashlib
 import time
+import re
+from typing import Optional
 
 import numpy as np
 import pyautogui
@@ -23,6 +25,9 @@ class WeChatClient:
 
         self.message_seen_at = {}
         self.message_dedup_window_seconds = 8
+
+        self.sent_dedup_window_seconds = 18
+        self._recently_sent: list[dict] = []
 
     @classmethod
     def _get_ocr_reader(cls):
@@ -50,6 +55,52 @@ class WeChatClient:
         ]
         for msg_hash in expired:
             del self.message_seen_at[msg_hash]
+
+    def _cleanup_recently_sent(self, now_ts: Optional[float] = None):
+        ts = now_ts if now_ts is not None else time.time()
+        self._recently_sent = [it for it in self._recently_sent if (ts - it["ts"]) <= self.sent_dedup_window_seconds]
+
+    @staticmethod
+    def _normalize_for_compare(text: str) -> str:
+        if not isinstance(text, str):
+            return ""
+        value = text.strip().lower()
+        value = re.sub(r"[\s;:：，。,.!?？！\-_/\\]+", "", value)
+        return value
+
+    @staticmethod
+    def _similar(a: str, b: str) -> float:
+        if not a or not b:
+            return 0.0
+        if a == b:
+            return 1.0
+        common = sum(1 for ch1, ch2 in zip(a, b) if ch1 == ch2)
+        return common / max(len(a), len(b))
+
+    def register_recently_sent(self, text: str, source: str = "assistant"):
+        norm = self._normalize_for_compare(text)
+        if not norm:
+            return
+        now_ts = time.time()
+        self._cleanup_recently_sent(now_ts)
+        self._recently_sent.append({"text": norm, "source": source, "ts": now_ts})
+
+    def match_recently_sent(self, text: str) -> Optional[str]:
+        norm = self._normalize_for_compare(text)
+        if not norm:
+            return None
+
+        now_ts = time.time()
+        self._cleanup_recently_sent(now_ts)
+
+        for item in reversed(self._recently_sent):
+            ratio = self._similar(norm, item["text"])
+            if ratio >= 0.92:
+                return item["source"]
+        return None
+
+    def is_recently_sent(self, text: str) -> bool:
+        return self.match_recently_sent(text) is not None
 
     def _get_window(self):
         wins = gw.getWindowsWithTitle("微信")
@@ -105,7 +156,7 @@ class WeChatClient:
 
         return title
 
-    def send_message(self, msg, chat=None):
+    def send_message(self, msg, chat=None, source: str = "assistant"):
         try:
             win = self._get_window()
             if not win:
@@ -126,6 +177,7 @@ class WeChatClient:
             logger.debug("Paste complete")
 
             pyautogui.press("enter")
+            self.register_recently_sent(msg, source=source)
             logger.info(f"Sent message: {msg[:20]}...")
             time.sleep(0.5)
 
@@ -165,6 +217,9 @@ class WeChatClient:
             self._cleanup_seen_hashes(now_ts)
 
             if last_seen is not None and (now_ts - last_seen) < self.message_dedup_window_seconds:
+                return None
+
+            if self.is_recently_sent(text):
                 return None
 
             logger.info(f"Recognized message: {text}")
