@@ -2,7 +2,7 @@
 import unittest
 from unittest.mock import patch
 
-import reply
+from bot import reply
 from memory import ConversationType, ShortTermMemory
 
 
@@ -25,7 +25,7 @@ class _Choice:
 class FakeCompletions:
     def create(self, **kwargs):
         self.kwargs = kwargs
-        return type("Resp", (), {"choices": [_Choice("回复：收到")]} )
+        return type("Resp", (), {"choices": [_Choice("回复：收到")]})
 
 
 class FakeChat:
@@ -62,8 +62,8 @@ class TestReply(unittest.TestCase):
         self.assertEqual(reply.daily_reply("在吗"), "咋了?")
         self.assertEqual(reply.daily_reply("hello"), "hi")
 
-    @patch("reply.get_openai_client", return_value=None)
-    @patch("reply.get_collection", return_value=None)
+    @patch("bot.reply.get_openai_client", return_value=None)
+    @patch("bot.reply.get_collection", return_value=None)
     def test_smart_reply_fallback_when_client_missing(self, _mock_collection, _mock_client):
         text = reply.get_smart_reply("u1", "你好", "")
         self.assertEqual(text, reply.FALLBACK_REPLY)

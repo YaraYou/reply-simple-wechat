@@ -1,7 +1,7 @@
-import unittest
+﻿import unittest
 
 from memory import ShortTermMemory
-from memory_policy import ConversationType
+from memory.memory_policy import ConversationType
 
 
 class TestMultiTurnMemoryPolicy(unittest.TestCase):
@@ -21,7 +21,6 @@ class TestMultiTurnMemoryPolicy(unittest.TestCase):
 
     def test_type_limits_are_different(self):
         sender = "u1"
-
         for i in range(5):
             self.memory.add_round(sender, f"hi{i}", f"ok{i}", conversation_type=ConversationType.GREETING)
         for i in range(7):
@@ -35,8 +34,6 @@ class TestMultiTurnMemoryPolicy(unittest.TestCase):
 
     def test_task_is_harder_to_evict_when_global_cap_reached(self):
         sender = "u2"
-
-        # task 类型优先级更高且 sticky，在全局挤压时不应先被移除
         self.memory.add_round(sender, "帮我明天提醒交报告", "好", conversation_type=ConversationType.TASK)
         self.memory.add_round(sender, "记得下午三点开会", "收到", conversation_type=ConversationType.TASK)
 

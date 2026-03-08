@@ -1,0 +1,902 @@
+[
+  {
+    "id": 1,
+    "expected": "im glad to have u",
+    "ocr": "im to have U glad",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 8
+  },
+  {
+    "id": 2,
+    "expected": "x6000",
+    "ocr": "XGOOO",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 4
+  },
+  {
+    "id": 3,
+    "expected": "EQW",
+    "ocr": "EQW",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 4,
+    "expected": "edg edg",
+    "ocr": "edg edg",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 5,
+    "expected": "shirt",
+    "ocr": "Shirt",
+    "strict": false,
+    "equivalent": true,
+    "error_type": "space_or_case",
+    "distance": 0
+  },
+  {
+    "id": 6,
+    "expected": "abandon abandon",
+    "ocr": "abandon abandon",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 7,
+    "expected": "Unit 11 A",
+    "ocr": "Unit 11 A",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 8,
+    "expected": "bee",
+    "ocr": "bee",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 9,
+    "expected": "x弓",
+    "ocr": "X弓",
+    "strict": false,
+    "equivalent": true,
+    "error_type": "space_or_case",
+    "distance": 0
+  },
+  {
+    "id": 10,
+    "expected": "122",
+    "ocr": "122",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 11,
+    "expected": "jin",
+    "ocr": "jin",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 12,
+    "expected": "best wish for you",
+    "ocr": "best Wish for you",
+    "strict": false,
+    "equivalent": true,
+    "error_type": "space_or_case",
+    "distance": 0
+  },
+  {
+    "id": 13,
+    "expected": "bt",
+    "ocr": "bt",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 14,
+    "expected": "trousers",
+    "ocr": "trousers",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 15,
+    "expected": "vergilovo",
+    "ocr": "Vergilovo",
+    "strict": false,
+    "equivalent": true,
+    "error_type": "space_or_case",
+    "distance": 0
+  },
+  {
+    "id": 16,
+    "expected": "those",
+    "ocr": "those",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 17,
+    "expected": "do you feel better",
+    "ocr": "do you feel better",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 18,
+    "expected": "IJ",
+    "ocr": "",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "empty",
+    "distance": 2
+  },
+  {
+    "id": 19,
+    "expected": "嵥l",
+    "ocr": "嵘1",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 2
+  },
+  {
+    "id": 20,
+    "expected": "list",
+    "ocr": "list",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 21,
+    "expected": "works",
+    "ocr": "Works",
+    "strict": false,
+    "equivalent": true,
+    "error_type": "space_or_case",
+    "distance": 0
+  },
+  {
+    "id": 22,
+    "expected": "x涨涨55l",
+    "ocr": "X涨涨551",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 23,
+    "expected": "Nice",
+    "ocr": "Nice",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 24,
+    "expected": "dumpling",
+    "ocr": "dumpling",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 25,
+    "expected": "egg",
+    "ocr": "egg",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 26,
+    "expected": "140G",
+    "ocr": "1406",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 27,
+    "expected": "loginhtml",
+    "ocr": "loginhtml",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 28,
+    "expected": "j bro",
+    "ocr": "jbro",
+    "strict": false,
+    "equivalent": true,
+    "error_type": "space_or_case",
+    "distance": 0
+  },
+  {
+    "id": 29,
+    "expected": "rua",
+    "ocr": "rUa",
+    "strict": false,
+    "equivalent": true,
+    "error_type": "space_or_case",
+    "distance": 0
+  },
+  {
+    "id": 30,
+    "expected": "What elo u want",
+    "ocr": "What elo U want",
+    "strict": false,
+    "equivalent": true,
+    "error_type": "space_or_case",
+    "distance": 0
+  },
+  {
+    "id": 31,
+    "expected": "L14app",
+    "ocr": "L1 4aPP",
+    "strict": false,
+    "equivalent": true,
+    "error_type": "space_or_case",
+    "distance": 0
+  },
+  {
+    "id": 32,
+    "expected": "r似",
+    "ocr": "r似",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 33,
+    "expected": "doc",
+    "ocr": "doc",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 34,
+    "expected": "cc",
+    "ocr": "CC",
+    "strict": false,
+    "equivalent": true,
+    "error_type": "space_or_case",
+    "distance": 0
+  },
+  {
+    "id": 35,
+    "expected": "edg",
+    "ocr": "edg",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 36,
+    "expected": "Dzs",
+    "ocr": "DZs",
+    "strict": false,
+    "equivalent": true,
+    "error_type": "space_or_case",
+    "distance": 0
+  },
+  {
+    "id": 37,
+    "expected": "YY",
+    "ocr": "YY",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 38,
+    "expected": "9840",
+    "ocr": "9840",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 39,
+    "expected": "飺766273282",
+    "ocr": "饕766273282",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 40,
+    "expected": "very much dz",
+    "ocr": "Very much dz",
+    "strict": false,
+    "equivalent": true,
+    "error_type": "space_or_case",
+    "distance": 0
+  },
+  {
+    "id": 41,
+    "expected": "GI",
+    "ocr": "G|",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 42,
+    "expected": "治bro",
+    "ocr": "治bro",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 43,
+    "expected": "緢10",
+    "ocr": "锚10",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 44,
+    "expected": "I cant take duo order",
+    "ocr": "cant take duo order",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 45,
+    "expected": "ss 彲",
+    "ocr": "SS 鹳",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 46,
+    "expected": "YouJunying",
+    "ocr": "Youlunying",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 47,
+    "expected": "飺357782813",
+    "ocr": "饕357782813",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 48,
+    "expected": "want",
+    "ocr": "want",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 49,
+    "expected": "A BC",
+    "ocr": "A BC",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 50,
+    "expected": "settings",
+    "ocr": "settings",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 51,
+    "expected": "24 CDATA",
+    "ocr": "24 CDATA",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 52,
+    "expected": "good night",
+    "ocr": "good night",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 53,
+    "expected": "adadl",
+    "ocr": "adadl",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 54,
+    "expected": "violin",
+    "ocr": "Violin",
+    "strict": false,
+    "equivalent": true,
+    "error_type": "space_or_case",
+    "distance": 0
+  },
+  {
+    "id": 55,
+    "expected": "Jane",
+    "ocr": "Jane",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 56,
+    "expected": "裬绰s",
+    "ocr": "裱绰s",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 57,
+    "expected": "IJ996",
+    "ocr": "1J996",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 58,
+    "expected": "010 svp",
+    "ocr": "010 sVp",
+    "strict": false,
+    "equivalent": true,
+    "error_type": "space_or_case",
+    "distance": 0
+  },
+  {
+    "id": 59,
+    "expected": "moddlc",
+    "ocr": "moddlc",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 60,
+    "expected": "x240000",
+    "ocr": "X240000",
+    "strict": false,
+    "equivalent": true,
+    "error_type": "space_or_case",
+    "distance": 0
+  },
+  {
+    "id": 61,
+    "expected": "lpl",
+    "ocr": "Ipl",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 62,
+    "expected": "brol",
+    "ocr": "brol",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 63,
+    "expected": "twelve12",
+    "ocr": "twelvel2",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 64,
+    "expected": "23汾",
+    "ocr": "23汾",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 65,
+    "expected": "G320",
+    "ocr": "6320",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 66,
+    "expected": "IJxxx10",
+    "ocr": "IJXXX1O",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 67,
+    "expected": "ad ad",
+    "ocr": "adad",
+    "strict": false,
+    "equivalent": true,
+    "error_type": "space_or_case",
+    "distance": 0
+  },
+  {
+    "id": 68,
+    "expected": "2b",
+    "ocr": "2b",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 69,
+    "expected": "wrq",
+    "ocr": "Wrq",
+    "strict": false,
+    "equivalent": true,
+    "error_type": "space_or_case",
+    "distance": 0
+  },
+  {
+    "id": 70,
+    "expected": "150130dz",
+    "ocr": "150130d2",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 71,
+    "expected": "IJ 300apex",
+    "ocr": "1 3o0apex",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 3
+  },
+  {
+    "id": 72,
+    "expected": "050",
+    "ocr": "050",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 73,
+    "expected": "飺489584441",
+    "ocr": "饕489584441",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 74,
+    "expected": "139 35",
+    "ocr": "13935",
+    "strict": false,
+    "equivalent": true,
+    "error_type": "space_or_case",
+    "distance": 0
+  },
+  {
+    "id": 75,
+    "expected": "s岿",
+    "ocr": "$岿",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 76,
+    "expected": "2r",
+    "ocr": "2r",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 77,
+    "expected": "185 6903 6653",
+    "ocr": "185 6903 6653",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 78,
+    "expected": "2205",
+    "ocr": "2205",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 79,
+    "expected": "0203",
+    "ocr": "0203",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 80,
+    "expected": "105",
+    "ocr": "105",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 81,
+    "expected": "Unit5 PartADEF",
+    "ocr": "Units PartADEF",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 82,
+    "expected": "DZL",
+    "ocr": "DZL",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 83,
+    "expected": "150浱",
+    "ocr": "150派",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 84,
+    "expected": "modelshome",
+    "ocr": "modelshome",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 85,
+    "expected": "ear",
+    "ocr": "ear",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 86,
+    "expected": "Pyt1002036852",
+    "ocr": "Pyt1002036852",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 87,
+    "expected": "01120918 8",
+    "ocr": "011209188",
+    "strict": false,
+    "equivalent": true,
+    "error_type": "space_or_case",
+    "distance": 0
+  },
+  {
+    "id": 88,
+    "expected": "x l",
+    "ocr": "X 1",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 89,
+    "expected": "ez",
+    "ocr": "eZ",
+    "strict": false,
+    "equivalent": true,
+    "error_type": "space_or_case",
+    "distance": 0
+  },
+  {
+    "id": 90,
+    "expected": "lanil",
+    "ocr": "lanil",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 91,
+    "expected": "2111914",
+    "ocr": "2111914",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 92,
+    "expected": "x700",
+    "ocr": "X700",
+    "strict": false,
+    "equivalent": true,
+    "error_type": "space_or_case",
+    "distance": 0
+  },
+  {
+    "id": 93,
+    "expected": "140l",
+    "ocr": "1401",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 94,
+    "expected": "v50",
+    "ocr": "VSO",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 2
+  },
+  {
+    "id": 95,
+    "expected": "bro涯",
+    "ocr": "bro涯",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 96,
+    "expected": "cow",
+    "ocr": "COW",
+    "strict": false,
+    "equivalent": true,
+    "error_type": "space_or_case",
+    "distance": 0
+  },
+  {
+    "id": 97,
+    "expected": "Lj",
+    "ocr": "Li",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  },
+  {
+    "id": 98,
+    "expected": "Coldplay",
+    "ocr": "Coldplay",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 99,
+    "expected": "Emm",
+    "ocr": "Emm",
+    "strict": true,
+    "equivalent": true,
+    "error_type": "",
+    "distance": 0
+  },
+  {
+    "id": 100,
+    "expected": "x55000",
+    "ocr": "XS5000",
+    "strict": false,
+    "equivalent": false,
+    "error_type": "char_confusion",
+    "distance": 1
+  }
+]

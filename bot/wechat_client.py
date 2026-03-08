@@ -1,4 +1,4 @@
-import hashlib
+﻿import hashlib
 import time
 
 import numpy as np
@@ -8,17 +8,14 @@ import pyperclip
 from PIL import ImageGrab
 from loguru import logger
 
-import config
+from app.config import settings
 
 
 class WeChatClient:
-    """微信桌面端自动化客户端：负责收消息、发消息与会话标识。"""
-
     _ocr_reader = None
     _ocr_init_failed = False
 
     def __init__(self):
-        """初始化坐标参数和消息去重缓存。"""
         self.input_x_ratio = 0.3533
         self.input_y_from_bottom = 95
         self.msg_bbox_offsets = (342, 478, 556, 541)
@@ -28,7 +25,6 @@ class WeChatClient:
 
     @classmethod
     def _get_ocr_reader(cls):
-        """懒加载 OCR Reader，初始化失败时做一次性降级。"""
         if cls._ocr_reader is not None:
             return cls._ocr_reader
         if cls._ocr_init_failed:
@@ -45,7 +41,6 @@ class WeChatClient:
             return None
 
     def _cleanup_seen_hashes(self, now_ts: float):
-        """清理过期消息哈希，避免去重缓存无限增长。"""
         expire_after = self.message_dedup_window_seconds * 6
         expired = [
             msg_hash
@@ -56,7 +51,6 @@ class WeChatClient:
             del self.message_seen_at[msg_hash]
 
     def _get_window(self):
-        """定位并激活微信窗口，必要时调整到约定位置与尺寸。"""
         wins = gw.getWindowsWithTitle("微信")
         if not wins:
             logger.error("WeChat window not found")
@@ -71,10 +65,10 @@ class WeChatClient:
             logger.warning(f"Window activate failed: {e}")
         time.sleep(0.5)
 
-        target_width = config.settings.wechat_window_width
-        target_height = config.settings.wechat_window_height
-        target_x = config.settings.wechat_window_x
-        target_y = config.settings.wechat_window_y
+        target_width = settings.wechat_window_width
+        target_height = settings.wechat_window_height
+        target_x = settings.wechat_window_x
+        target_y = settings.wechat_window_y
 
         if (
             win.width != target_width
@@ -100,7 +94,6 @@ class WeChatClient:
         return win
 
     def get_chat_key(self):
-        """获取当前会话键，默认使用窗口标题区分会话。"""
         win = self._get_window()
         if not win:
             return "unknown_chat"
@@ -112,7 +105,6 @@ class WeChatClient:
         return title
 
     def send_message(self, msg, chat=None):
-        """将文本粘贴到输入框并发送。"""
         try:
             win = self._get_window()
             if not win:
@@ -140,7 +132,6 @@ class WeChatClient:
             logger.error(f"Send failed: {e}")
 
     def get_latest_message(self):
-        """截图消息区域并 OCR，返回去重后的最新消息文本。"""
         win = self._get_window()
         if not win:
             return None
@@ -182,5 +173,4 @@ class WeChatClient:
             return None
 
     def get_new_messages(self):
-        """对外统一的拉取新消息接口。"""
         return self.get_latest_message()

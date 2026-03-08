@@ -1,0 +1,802 @@
+[
+  {
+    "id": 1,
+    "expected": "20250704 015702",
+    "ocr": "20250704015702",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 2,
+    "expected": "20250510 175858",
+    "ocr": "20250510175858",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 3,
+    "expected": "20241104 230552",
+    "ocr": "20241104230552",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 4,
+    "expected": "20250208 160841",
+    "ocr": "20250208160841",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 5,
+    "expected": "20250108 213753",
+    "ocr": "20250108213753",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 6,
+    "expected": "can u give me ur pics",
+    "ocr": "can U give me Ur pics",
+    "exact": false,
+    "levenshtein": 2,
+    "error_type": "char_confusion"
+  },
+  {
+    "id": 7,
+    "expected": "20250312 172106",
+    "ocr": "20250312172106",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 8,
+    "expected": "20250707 175729",
+    "ocr": "20250707175729",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 9,
+    "expected": "20240428 123429",
+    "ocr": "20240428123429",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 10,
+    "expected": "20250329 190541",
+    "ocr": "20250329190541",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 11,
+    "expected": "20251002 192516",
+    "ocr": "20251002192516",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 12,
+    "expected": "20240918 005247",
+    "ocr": "20240918005247",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 13,
+    "expected": "20250126 164734",
+    "ocr": "20250126164734",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 14,
+    "expected": "20250729 003754",
+    "ocr": "20250729003754",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 15,
+    "expected": "20250303 202904",
+    "ocr": "20250303202904",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 16,
+    "expected": "20240604 212922",
+    "ocr": "20240604 212922",
+    "exact": true,
+    "levenshtein": 0,
+    "error_type": ""
+  },
+  {
+    "id": 17,
+    "expected": "20250413 133655",
+    "ocr": "20250413133655",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 18,
+    "expected": "20241106 172045",
+    "ocr": "20241106172045",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 19,
+    "expected": "20241106 015659",
+    "ocr": "20241106015659",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 20,
+    "expected": "20250310 202859",
+    "ocr": "20250310202859",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 21,
+    "expected": "20250312 161348",
+    "ocr": "20250312161348",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 22,
+    "expected": "20250523 194724",
+    "ocr": "20250523194724",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 23,
+    "expected": "20241023 100637",
+    "ocr": "20241023100637",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 24,
+    "expected": "20250522 175100",
+    "ocr": "20250522175100",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 25,
+    "expected": "20241105 011949",
+    "ocr": "20241105011949",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 26,
+    "expected": "20250702 211603",
+    "ocr": "20250702211603",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 27,
+    "expected": "20241226 155253",
+    "ocr": "20241226155253",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 28,
+    "expected": "20240529 161442",
+    "ocr": "20240529161442",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 29,
+    "expected": "20250718 134012",
+    "ocr": "20250718134012",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 30,
+    "expected": "20260212 023745",
+    "ocr": "20260212023745",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 31,
+    "expected": "150177",
+    "ocr": "150177",
+    "exact": true,
+    "levenshtein": 0,
+    "error_type": ""
+  },
+  {
+    "id": 32,
+    "expected": "20250406 133737",
+    "ocr": "20250406 133737",
+    "exact": true,
+    "levenshtein": 0,
+    "error_type": ""
+  },
+  {
+    "id": 33,
+    "expected": "20250312 163044",
+    "ocr": "20250312163044",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 34,
+    "expected": "20250811 153540",
+    "ocr": "20250811153540",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 35,
+    "expected": "20241119 020514",
+    "ocr": "20241119020514",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 36,
+    "expected": "20250511 214310",
+    "ocr": "20250511214310",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 37,
+    "expected": "20250111 195425",
+    "ocr": "20250111195425",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 38,
+    "expected": "20241204 001649",
+    "ocr": "20241204001649",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 39,
+    "expected": "20250905 235250",
+    "ocr": "20250905 235250",
+    "exact": true,
+    "levenshtein": 0,
+    "error_type": ""
+  },
+  {
+    "id": 40,
+    "expected": "20250914 233359",
+    "ocr": "20250914233359",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 41,
+    "expected": "20241222 210051",
+    "ocr": "20241222210051",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 42,
+    "expected": "20250911 084531",
+    "ocr": "20250911084531",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 43,
+    "expected": "20260121 025622",
+    "ocr": "20260121025622",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 44,
+    "expected": "20250416 124745",
+    "ocr": "20250416124745",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 45,
+    "expected": "20260117 191717",
+    "ocr": "20260117191717",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 46,
+    "expected": "20250305 141717",
+    "ocr": "20250305141717",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 47,
+    "expected": "20250826 234114",
+    "ocr": "20250826234114",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 48,
+    "expected": "20250128 203807",
+    "ocr": "20250128203807",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 49,
+    "expected": "20260118 172947",
+    "ocr": "20260118172947",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 50,
+    "expected": "20240905 100947",
+    "ocr": "20240905 100947",
+    "exact": true,
+    "levenshtein": 0,
+    "error_type": ""
+  },
+  {
+    "id": 51,
+    "expected": "20250313 203900",
+    "ocr": "20250313203900",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 52,
+    "expected": "20250309 165000",
+    "ocr": "20250309165000",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 53,
+    "expected": "20241021 085239",
+    "ocr": "20241021085239",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 54,
+    "expected": "20250310 231806",
+    "ocr": "20250310231806",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 55,
+    "expected": "656136",
+    "ocr": "656136",
+    "exact": true,
+    "levenshtein": 0,
+    "error_type": ""
+  },
+  {
+    "id": 56,
+    "expected": "20240608 214908",
+    "ocr": "20240608 214908",
+    "exact": true,
+    "levenshtein": 0,
+    "error_type": ""
+  },
+  {
+    "id": 57,
+    "expected": "20240529 083955",
+    "ocr": "20240529083955",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 58,
+    "expected": "20250523 005148",
+    "ocr": "20250523 005148",
+    "exact": true,
+    "levenshtein": 0,
+    "error_type": ""
+  },
+  {
+    "id": 59,
+    "expected": "20250102 004445",
+    "ocr": "20250102004445",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 60,
+    "expected": "20250103 172251",
+    "ocr": "20250103172251",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 61,
+    "expected": "20241109 211351",
+    "ocr": "20241109211351",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 62,
+    "expected": "20240410 001903",
+    "ocr": "20240410001903",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 63,
+    "expected": "20251006 144015",
+    "ocr": "20251006 144015",
+    "exact": true,
+    "levenshtein": 0,
+    "error_type": ""
+  },
+  {
+    "id": 64,
+    "expected": "20250318 031214",
+    "ocr": "20250318031214",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 65,
+    "expected": "20250601 221003",
+    "ocr": "20250601221003",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 66,
+    "expected": "20240301 020732",
+    "ocr": "20240301020732",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 67,
+    "expected": "20241013 162101",
+    "ocr": "20241013162101",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 68,
+    "expected": "20250215 235757",
+    "ocr": "20250215235757",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 69,
+    "expected": "20251205 140223",
+    "ocr": "20251205140223",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 70,
+    "expected": "20250127 151249",
+    "ocr": "20250127151249",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 71,
+    "expected": "20250906 180326",
+    "ocr": "20250906 180326",
+    "exact": true,
+    "levenshtein": 0,
+    "error_type": ""
+  },
+  {
+    "id": 72,
+    "expected": "20250627 034643",
+    "ocr": "20250627034643",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 73,
+    "expected": "20250604 070155",
+    "ocr": "20250604 070155",
+    "exact": true,
+    "levenshtein": 0,
+    "error_type": ""
+  },
+  {
+    "id": 74,
+    "expected": "20250112 135845",
+    "ocr": "20250112135845",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 75,
+    "expected": "20241105 004218",
+    "ocr": "20241105 004218",
+    "exact": true,
+    "levenshtein": 0,
+    "error_type": ""
+  },
+  {
+    "id": 76,
+    "expected": "BUFF",
+    "ocr": "BUFF",
+    "exact": true,
+    "levenshtein": 0,
+    "error_type": ""
+  },
+  {
+    "id": 77,
+    "expected": "20250731 160336",
+    "ocr": "20250731160336",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 78,
+    "expected": "20241221 181654",
+    "ocr": "20241221181654",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 79,
+    "expected": "20260214 122225",
+    "ocr": "20260214122225",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 80,
+    "expected": "20250125 204222",
+    "ocr": "20250125204222",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 81,
+    "expected": "20241113 215751",
+    "ocr": "20241113215751",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 82,
+    "expected": "20250720 174430",
+    "ocr": "20250720174430",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 83,
+    "expected": "20250413 134924",
+    "ocr": "20250413134924",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 84,
+    "expected": "20260223 221727",
+    "ocr": "20260223221727",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 85,
+    "expected": "20240629 202945",
+    "ocr": "20240629202945",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 86,
+    "expected": "20250216 000414",
+    "ocr": "20250216000414",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 87,
+    "expected": "20241018 101057",
+    "ocr": "20241018101057",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 88,
+    "expected": "20250523 195319",
+    "ocr": "20250523195319",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 89,
+    "expected": "20241128 130743",
+    "ocr": "20241128130743",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 90,
+    "expected": "20250312 184648",
+    "ocr": "20250312184648",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 91,
+    "expected": "20241021 085612",
+    "ocr": "20241021085612",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 92,
+    "expected": "20250511 210655",
+    "ocr": "20250511210655",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 93,
+    "expected": "20250812 195918",
+    "ocr": "20250812195918",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 94,
+    "expected": "20250629 000416",
+    "ocr": "20250629000416",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 95,
+    "expected": "20260126 104047",
+    "ocr": "20260126104047",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 96,
+    "expected": "20240813 152320",
+    "ocr": "20240813 152320",
+    "exact": true,
+    "levenshtein": 0,
+    "error_type": ""
+  },
+  {
+    "id": 97,
+    "expected": "20250915 163703",
+    "ocr": "20250915163703",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  },
+  {
+    "id": 98,
+    "expected": "20241005 084717",
+    "ocr": "20241005 084717",
+    "exact": true,
+    "levenshtein": 0,
+    "error_type": ""
+  },
+  {
+    "id": 99,
+    "expected": "xj",
+    "ocr": "Xj",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "char_confusion"
+  },
+  {
+    "id": 100,
+    "expected": "20250103 024259",
+    "ocr": "20250103024259",
+    "exact": false,
+    "levenshtein": 1,
+    "error_type": "space_issue"
+  }
+]

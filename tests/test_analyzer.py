@@ -1,9 +1,9 @@
 ﻿import datetime
 import unittest
 
-from analyzer import MessageAnalyzer
+from bot.analyzer import MessageAnalyzer
 from memory import ShortTermMemory
-import reply
+from bot import reply
 
 
 class _Msg:
@@ -22,7 +22,7 @@ class CapturingCompletions:
 
     def create(self, **kwargs):
         self.kwargs = kwargs
-        return type("Resp", (), {"choices": [_Choice("回复：好的")]} )
+        return type("Resp", (), {"choices": [_Choice("回复：好的")]})
 
 
 class CapturingClient:

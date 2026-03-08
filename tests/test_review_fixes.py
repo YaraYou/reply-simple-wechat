@@ -2,7 +2,7 @@
 from pathlib import Path
 import unittest
 
-import reply
+from bot import reply
 from memory import ConversationType, ShortTermMemory
 
 
@@ -41,21 +41,21 @@ class TestVectorExamplesCompatibility(unittest.TestCase):
 
 class TestReviewGuards(unittest.TestCase):
     def test_no_api_key_plaintext_print(self):
-        main_text = Path("main.py").read_text(encoding="utf-8")
+        main_text = Path("app/main.py").read_text(encoding="utf-8")
         self.assertNotIn("API_KEY from env", main_text)
 
     def test_sender_is_dynamic_chat_key(self):
-        main_text = Path("main.py").read_text(encoding="utf-8")
+        main_text = Path("app/main.py").read_text(encoding="utf-8")
         self.assertIn("sender = client.get_chat_key()", main_text)
         self.assertNotIn("sender = \"current_friend\"", main_text)
 
     def test_vector_doc_is_dialogue_pair(self):
-        main_text = Path("main.py").read_text(encoding="utf-8")
+        main_text = Path("app/main.py").read_text(encoding="utf-8")
         self.assertIn("dialogue_doc = f\"对方：{user_clean}\\n我：{assistant_clean}\"", main_text)
         self.assertIn("documents=[dialogue_doc]", main_text)
 
     def test_wechat_client_uses_lazy_ocr_init(self):
-        source = Path("wechat_client.py").read_text(encoding="utf-8")
+        source = Path("bot/wechat_client.py").read_text(encoding="utf-8")
         tree = ast.parse(source.encode("utf-8").decode("utf-8-sig"))
 
         top_level_imports = []
@@ -72,5 +72,3 @@ class TestReviewGuards(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-

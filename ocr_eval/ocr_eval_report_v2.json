@@ -1,0 +1,193 @@
+{
+  "sample_size": 100,
+  "strict_accuracy": 0.48,
+  "equivalent_accuracy_ignore_space_case": 0.7,
+  "char_accuracy_on_normalized_text": 0.9192,
+  "error_breakdown": {
+    "char_confusion": 29,
+    "space_or_case": 22,
+    "empty": 1
+  },
+  "mismatches_top20": [
+    {
+      "id": 1,
+      "expected": "im glad to have u",
+      "ocr": "im to have U glad",
+      "strict": false,
+      "equivalent": false,
+      "error_type": "char_confusion",
+      "distance": 8
+    },
+    {
+      "id": 2,
+      "expected": "x6000",
+      "ocr": "XGOOO",
+      "strict": false,
+      "equivalent": false,
+      "error_type": "char_confusion",
+      "distance": 4
+    },
+    {
+      "id": 5,
+      "expected": "shirt",
+      "ocr": "Shirt",
+      "strict": false,
+      "equivalent": true,
+      "error_type": "space_or_case",
+      "distance": 0
+    },
+    {
+      "id": 9,
+      "expected": "x弓",
+      "ocr": "X弓",
+      "strict": false,
+      "equivalent": true,
+      "error_type": "space_or_case",
+      "distance": 0
+    },
+    {
+      "id": 12,
+      "expected": "best wish for you",
+      "ocr": "best Wish for you",
+      "strict": false,
+      "equivalent": true,
+      "error_type": "space_or_case",
+      "distance": 0
+    },
+    {
+      "id": 15,
+      "expected": "vergilovo",
+      "ocr": "Vergilovo",
+      "strict": false,
+      "equivalent": true,
+      "error_type": "space_or_case",
+      "distance": 0
+    },
+    {
+      "id": 18,
+      "expected": "IJ",
+      "ocr": "",
+      "strict": false,
+      "equivalent": false,
+      "error_type": "empty",
+      "distance": 2
+    },
+    {
+      "id": 19,
+      "expected": "嵥l",
+      "ocr": "嵘1",
+      "strict": false,
+      "equivalent": false,
+      "error_type": "char_confusion",
+      "distance": 2
+    },
+    {
+      "id": 21,
+      "expected": "works",
+      "ocr": "Works",
+      "strict": false,
+      "equivalent": true,
+      "error_type": "space_or_case",
+      "distance": 0
+    },
+    {
+      "id": 22,
+      "expected": "x涨涨55l",
+      "ocr": "X涨涨551",
+      "strict": false,
+      "equivalent": false,
+      "error_type": "char_confusion",
+      "distance": 1
+    },
+    {
+      "id": 26,
+      "expected": "140G",
+      "ocr": "1406",
+      "strict": false,
+      "equivalent": false,
+      "error_type": "char_confusion",
+      "distance": 1
+    },
+    {
+      "id": 28,
+      "expected": "j bro",
+      "ocr": "jbro",
+      "strict": false,
+      "equivalent": true,
+      "error_type": "space_or_case",
+      "distance": 0
+    },
+    {
+      "id": 29,
+      "expected": "rua",
+      "ocr": "rUa",
+      "strict": false,
+      "equivalent": true,
+      "error_type": "space_or_case",
+      "distance": 0
+    },
+    {
+      "id": 30,
+      "expected": "What elo u want",
+      "ocr": "What elo U want",
+      "strict": false,
+      "equivalent": true,
+      "error_type": "space_or_case",
+      "distance": 0
+    },
+    {
+      "id": 31,
+      "expected": "L14app",
+      "ocr": "L1 4aPP",
+      "strict": false,
+      "equivalent": true,
+      "error_type": "space_or_case",
+      "distance": 0
+    },
+    {
+      "id": 34,
+      "expected": "cc",
+      "ocr": "CC",
+      "strict": false,
+      "equivalent": true,
+      "error_type": "space_or_case",
+      "distance": 0
+    },
+    {
+      "id": 36,
+      "expected": "Dzs",
+      "ocr": "DZs",
+      "strict": false,
+      "equivalent": true,
+      "error_type": "space_or_case",
+      "distance": 0
+    },
+    {
+      "id": 39,
+      "expected": "飺766273282",
+      "ocr": "饕766273282",
+      "strict": false,
+      "equivalent": false,
+      "error_type": "char_confusion",
+      "distance": 1
+    },
+    {
+      "id": 40,
+      "expected": "very much dz",
+      "ocr": "Very much dz",
+      "strict": false,
+      "equivalent": true,
+      "error_type": "space_or_case",
+      "distance": 0
+    },
+    {
+      "id": 41,
+      "expected": "GI",
+      "ocr": "G|",
+      "strict": false,
+      "equivalent": false,
+      "error_type": "char_confusion",
+      "distance": 1
+    }
+  ]
+}

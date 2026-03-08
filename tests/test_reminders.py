@@ -3,7 +3,7 @@ import json
 import unittest
 from pathlib import Path
 
-from reminders import ReminderStore
+from bot.reminders import ReminderStore
 
 
 class TestReminderStore(unittest.TestCase):

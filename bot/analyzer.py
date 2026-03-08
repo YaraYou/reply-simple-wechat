@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass
 import re
 from typing import Any, Dict, Optional
 
-from intent_model import IntentClassifier
+from bot.intent_model import IntentClassifier
 
 
 INTENT_TO_MEMORY_TYPE = {
@@ -38,11 +38,7 @@ class MessageAnalysis:
 
 
 class MessageAnalyzer:
-    """Message analyzer with switchable `rule` / `ml` modes.
-
-    - mode="rule": always use deterministic rule engine.
-    - mode="ml": use ML classifier, and fallback to rule by default if unavailable/fails.
-    """
+    """Message analyzer with switchable `rule` / `ml` modes."""
 
     def __init__(
         self,
@@ -59,34 +55,10 @@ class MessageAnalyzer:
         self._classifier_error = False
 
         self.intent_patterns = [
-            (
-                "greeting",
-                [
-                    r"\b(hi|hello|hey)\b",
-                    r"你好|您好|在吗|在不|早上好|晚上好|晚安",
-                ],
-            ),
-            (
-                "feedback",
-                [
-                    r"谢谢|感谢|辛苦了|多谢",
-                    r"抱歉|对不起|不好意思|sorry|thx",
-                ],
-            ),
-            (
-                "task",
-                [
-                    r"提醒|待办|任务|todo|安排|跟进|处理|提交",
-                    r"帮我|记得|需要你",
-                ],
-            ),
-            (
-                "question",
-                [
-                    r"[?？]",
-                    r"怎么|为何|为什么|啥|什么|能不能|可不可以|是否",
-                ],
-            ),
+            ("greeting", [r"\b(hi|hello|hey)\b", r"你好|您好|在吗|在不|早上好|晚上好|晚安"]),
+            ("feedback", [r"谢谢|感谢|辛苦了|多谢", r"抱歉|对不起|不好意思|sorry|thx"]),
+            ("task", [r"提醒|待办|任务|todo|安排|跟进|处理|提交", r"帮我|记得|需要你"]),
+            ("question", [r"[?？]", r"怎么|为何|为什么|啥|什么|能不能|可不可以|是否"]),
         ]
 
     def analyze(self, message: str) -> MessageAnalysis:

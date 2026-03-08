@@ -1,0 +1,172 @@
+{
+  "sample_size": 100,
+  "exact_accuracy": 0.15,
+  "char_accuracy": 0.9413,
+  "errors": 85,
+  "error_breakdown": {
+    "space_issue": 83,
+    "char_confusion": 2
+  },
+  "top_mismatches": [
+    {
+      "id": 1,
+      "expected": "20250704 015702",
+      "ocr": "20250704015702",
+      "exact": false,
+      "levenshtein": 1,
+      "error_type": "space_issue"
+    },
+    {
+      "id": 2,
+      "expected": "20250510 175858",
+      "ocr": "20250510175858",
+      "exact": false,
+      "levenshtein": 1,
+      "error_type": "space_issue"
+    },
+    {
+      "id": 3,
+      "expected": "20241104 230552",
+      "ocr": "20241104230552",
+      "exact": false,
+      "levenshtein": 1,
+      "error_type": "space_issue"
+    },
+    {
+      "id": 4,
+      "expected": "20250208 160841",
+      "ocr": "20250208160841",
+      "exact": false,
+      "levenshtein": 1,
+      "error_type": "space_issue"
+    },
+    {
+      "id": 5,
+      "expected": "20250108 213753",
+      "ocr": "20250108213753",
+      "exact": false,
+      "levenshtein": 1,
+      "error_type": "space_issue"
+    },
+    {
+      "id": 6,
+      "expected": "can u give me ur pics",
+      "ocr": "can U give me Ur pics",
+      "exact": false,
+      "levenshtein": 2,
+      "error_type": "char_confusion"
+    },
+    {
+      "id": 7,
+      "expected": "20250312 172106",
+      "ocr": "20250312172106",
+      "exact": false,
+      "levenshtein": 1,
+      "error_type": "space_issue"
+    },
+    {
+      "id": 8,
+      "expected": "20250707 175729",
+      "ocr": "20250707175729",
+      "exact": false,
+      "levenshtein": 1,
+      "error_type": "space_issue"
+    },
+    {
+      "id": 9,
+      "expected": "20240428 123429",
+      "ocr": "20240428123429",
+      "exact": false,
+      "levenshtein": 1,
+      "error_type": "space_issue"
+    },
+    {
+      "id": 10,
+      "expected": "20250329 190541",
+      "ocr": "20250329190541",
+      "exact": false,
+      "levenshtein": 1,
+      "error_type": "space_issue"
+    },
+    {
+      "id": 11,
+      "expected": "20251002 192516",
+      "ocr": "20251002192516",
+      "exact": false,
+      "levenshtein": 1,
+      "error_type": "space_issue"
+    },
+    {
+      "id": 12,
+      "expected": "20240918 005247",
+      "ocr": "20240918005247",
+      "exact": false,
+      "levenshtein": 1,
+      "error_type": "space_issue"
+    },
+    {
+      "id": 13,
+      "expected": "20250126 164734",
+      "ocr": "20250126164734",
+      "exact": false,
+      "levenshtein": 1,
+      "error_type": "space_issue"
+    },
+    {
+      "id": 14,
+      "expected": "20250729 003754",
+      "ocr": "20250729003754",
+      "exact": false,
+      "levenshtein": 1,
+      "error_type": "space_issue"
+    },
+    {
+      "id": 15,
+      "expected": "20250303 202904",
+      "ocr": "20250303202904",
+      "exact": false,
+      "levenshtein": 1,
+      "error_type": "space_issue"
+    },
+    {
+      "id": 17,
+      "expected": "20250413 133655",
+      "ocr": "20250413133655",
+      "exact": false,
+      "levenshtein": 1,
+      "error_type": "space_issue"
+    },
+    {
+      "id": 18,
+      "expected": "20241106 172045",
+      "ocr": "20241106172045",
+      "exact": false,
+      "levenshtein": 1,
+      "error_type": "space_issue"
+    },
+    {
+      "id": 19,
+      "expected": "20241106 015659",
+      "ocr": "20241106015659",
+      "exact": false,
+      "levenshtein": 1,
+      "error_type": "space_issue"
+    },
+    {
+      "id": 20,
+      "expected": "20250310 202859",
+      "ocr": "20250310202859",
+      "exact": false,
+      "levenshtein": 1,
+      "error_type": "space_issue"
+    },
+    {
+      "id": 21,
+      "expected": "20250312 161348",
+      "ocr": "20250312161348",
+      "exact": false,
+      "levenshtein": 1,
+      "error_type": "space_issue"
+    }
+  ]
+}

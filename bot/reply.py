@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 
 from loguru import logger
 
-from config import settings
+from app.config import settings
 from utils import clean_text_safe
 
 os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
@@ -53,9 +53,9 @@ def get_collection():
         from chromadb.utils import embedding_functions
 
         sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name="./model_cache"
+            model_name=settings.embedding_model_path
         )
-        chroma_client = chromadb.PersistentClient(path="./chroma_data")
+        chroma_client = chromadb.PersistentClient(path=settings.chroma_path)
         collection = chroma_client.get_collection(
             name="chat_history",
             embedding_function=sentence_transformer_ef,
@@ -107,11 +107,6 @@ def daily_reply(msg: str) -> Optional[str]:
 
 
 def _intent_quick_reply(msg: str, analysis_context: Optional[Dict[str, Any]]) -> Optional[str]:
-    """Intent-specific fast path.
-
-    - greeting/feedback/task use short deterministic replies.
-    - question/general continue to smart generation.
-    """
     if not analysis_context:
         return None
 
@@ -214,7 +209,6 @@ def get_smart_reply(
     analysis_context: Optional[Dict[str, Any]] = None,
 ):
     try:
-        # Intent-aware fast branch for known categories.
         quick_reply = _intent_quick_reply(msg, analysis_context)
         if quick_reply:
             return quick_reply

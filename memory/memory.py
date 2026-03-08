@@ -4,7 +4,7 @@ from collections import defaultdict, deque
 import datetime
 from typing import Any, Dict, Iterable, List, Optional, Union
 
-from memory_policy import (
+from memory.memory_policy import (
     ConversationType,
     classify_message,
     get_policy,
