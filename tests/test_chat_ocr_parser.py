@@ -37,6 +37,11 @@ class TestChatOCRParser(unittest.TestCase):
         self.assertTrue(messages[2].is_timestamp)
         self.assertFalse(messages[2].is_noise)
 
+    def test_right_anchor_classify_me(self):
+        parser = MockChatOCRParser([])
+        role = parser._classify_sender((260, 40, 498, 100), 500, "这是我发的", False)
+        self.assertEqual("me", role)
+
     def test_extract_timestamp_formats(self):
         parser = MockChatOCRParser([])
 

@@ -56,6 +56,35 @@ class TestConversationManager(unittest.TestCase):
         self.assertIn("对方：第三句", text)
         self.assertNotIn("第一句", text)
 
+    def test_tail_candidate_me_should_not_reply(self):
+        mgr = ConversationManager(max_messages=10, confirm_rounds=1)
+        rows = [
+            self._msg("o1", "other", "旧的对方消息", 10),
+            self._msg("m1", "me", "我刚回复了", 30),
+        ]
+        candidate = mgr.get_reply_candidate_from_tail(rows)
+        self.assertIsNone(candidate)
+
+    def test_tail_candidate_other_should_reply(self):
+        mgr = ConversationManager(max_messages=10, confirm_rounds=1)
+        rows = [
+            self._msg("m1", "me", "好的", 10),
+            self._msg("o1", "other", "你晚上有空吗", 30),
+        ]
+        candidate = mgr.get_reply_candidate_from_tail(rows)
+        self.assertIsNotNone(candidate)
+        self.assertEqual("other", candidate.sender_role)
+        self.assertEqual("你晚上有空吗", candidate.text)
+
+    def test_tail_candidate_timestamp_should_not_reply_old_other(self):
+        mgr = ConversationManager(max_messages=10, confirm_rounds=1)
+        rows = [
+            self._msg("o1", "other", "旧消息", 10),
+            self._msg("t1", "system", "21:35", 30, is_timestamp=True),
+        ]
+        candidate = mgr.get_reply_candidate_from_tail(rows)
+        self.assertIsNone(candidate)
+
 
 if __name__ == "__main__":
     unittest.main()

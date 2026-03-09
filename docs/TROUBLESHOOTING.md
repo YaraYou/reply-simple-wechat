@@ -1,115 +1,84 @@
-﻿# Troubleshooting
+# TROUBLESHOOTING
 
-开发问题和数据问题统一记录在这里。
+## 2026-03-10
 
-## 2026-03-08
+### 1. 前端访问 `127.0.0.1` 报错 `ERR_CONNECTION_REFUSED`
+现象：
+- 浏览器显示“无法访问此页面 / 127.0.0.1 拒绝连接”。
 
-### OCR 准确率评测与误差分析
-场景是对当前 OCR 能力做一次离线基准评测，样本量约 100 条。
+原因：
+- 打开了 `http://127.0.0.1`（默认 80 端口），但服务实际运行在 `8000`（后端）或 `5173`（前端）。
 
-测试口径
-使用当前代码同款 EasyOCR 配置 `ch_sim + en`。
-从聊天语料抽样并生成消息气泡图后识别，输出结构化报告。
+处理：
+- 后端检查：打开 `http://127.0.0.1:8000/api/status`。
+- 前端检查：运行 `npm run dev` 后访问终端打印的地址（通常 `http://127.0.0.1:5173`）。
 
-评测结果
-严格准确率 48.0%
-业务等价准确率 70.0%（忽略空格和大小写）
-归一化字符级准确率 91.92%
+---
 
-误差原因
-主要是字符混淆，典型为 `0/O` `1/l/I` `G/6` 以及相近字形。
-其次是空格和大小写差异，这类对语义影响较小但会拉低严格准确率。
-少量极短文本出现空识别。
+### 2. `npm run dev` 报错：`Unexpected token '﻿' ... is not valid JSON`
+现象：
+- Vite 启动失败，提示 PostCSS 配置读取失败；堆栈中出现 `Unexpected token '﻿'`。
 
-结果文件
-`ocr_eval/ocr_eval_report_v2.json`
-`ocr_eval/ocr_eval_samples_v2.json`
+原因：
+- `frontend/package.json` 或其他配置文件含 UTF-8 BOM，导致 JSON 解析失败。
 
-### OCR 自激回声 / 已读乱回（正式修复）
-问题名称
-OCR 自激回声导致机器人回复自己。
+处理：
+- 将相关文件转为 UTF-8 无 BOM（`package.json`、`tsconfig.json`、`vite.config.ts`、`.env` 等）。
+- 重新执行 `npm run dev`。
 
-现象
-- 机器人把刚发出的消息再次识别成“对方新消息”
-- 时间戳或碎片文本（如 `29 22;56`）也会触发回复
-- 提醒消息进入普通链路后反复触发 task 回复
+---
 
-触发条件
-- 聊天窗口 OCR 有抖动，缺少稳定确认与来源隔离
-- 发送链路没有 self echo 缓存
-- 会话层没有强制过滤 `system/noise/internal`
+### 3. 前端显示 `REAL + Disconnected`
+现象：
+- Topbar 显示 REAL，但 API 连通状态为 Disconnected。
 
-根因分析
-1. `me/other/system` 区分不稳定
-2. 时间戳与噪声碎片未过滤
-3. reminder 内部消息回流
-4. 缺少 `processed_msg_ids + 两次确认`
-5. analyzer 对垃圾输入给出正常意图
+原因：
+- 控制 API 未启动，或 `VITE_API_BASE_URL` 配置错误。
 
-修复方案
-- OCR 结构化输出补充 `is_timestamp/is_noise/source/msg_id`
-- 会话层只放行 `other` 且非噪声、非时间、非内部来源
-- 新增 recently sent 缓存，发送后 18 秒内高相似文本直接忽略
-- 新增两次稳定出现确认机制
-- reminder 增加 `internal_reminder` 来源并隔离 overdue 启动注入
-- analyzer 增加 `noise/system/self_echo` 意图并降低置信度
-- reply 增加最后一道 skip 保护
+处理：
+1. 确认后端运行：
+```bash
+python -m app.control_api
+```
+2. 确认前端环境变量：
+```env
+VITE_USE_MOCK=false
+VITE_API_BASE_URL=http://127.0.0.1:8000
+```
+3. 重启前端 dev server。
 
-如何验证修复成功
-- 运行 `python -m unittest -v`
-- 重点测试：
-  - `tests/test_self_echo.py`
-  - `tests/test_reminder_isolation.py`
-  - `tests/test_chat_ocr_parser.py`
-  - `tests/test_conversation_manager.py`
-  - `tests/test_analyzer_noise_guard.py`
+---
 
-后续预防措施
-- 固定保留“上游过滤 + 下游兜底”双层防线
-- 每次改动 OCR/提醒逻辑必须跑以上 5 组回归测试
-- 将噪声样本持续加入测试集
+### 4. 点击 Start 无反应
+现象：
+- 页面点击 Start 后状态不变。
 
-## 变更索引
+排查：
+- 先看 `http://127.0.0.1:8000/api/status` 是否可访问。
+- 再看控制 API 控制台是否有异常输出。
+- 检查本机是否能直接运行：
+```bash
+python -m app.main
+```
 
-| Date | Scope | Action | Status |
-| --- | --- | --- | --- |
-| 2026-03-08 | OCR评测 | 100条样本离线评测与误差归因 | Done |
-| 2026-03-08 | 防乱回补丁 | 自激回声/已读乱回修复并补测试 | Done |
+说明：
+- 当前控制层通过子进程启动 `app.main`，依赖本机 Python 运行环境正常。
 
-## 维护说明
+---
 
-新问题继续按日期追加。
-每条记录保留问题现象 原因定位 处理方式 结果四段。
-涉及数据评测时，报告文件路径和口径必须写清楚。
+### 5. 仍想先本地演示，不联后端
+处理：
+- 在 `frontend/.env` 中设置：
+```env
+VITE_USE_MOCK=true
+```
+- 页面可完整演示，不依赖控制 API。
 
+## 历史问题
+- OCR 误触发、self echo、向量库路径等历史问题已在前序版本修复。
+- 详见 `docs/CHANGELOG.md` 与单测用例。
+## 联调成功示例截图
 
-## 2026-03-09
+当控制 API 与前端都正常时，可参考：
 
-### parse_chats ????????????????
-??
-- ?? `parse_chats` ??? `FileNotFoundError`
-- ??????`...sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2 not found`
-
-????
-- `.env` ? `embedding_model_path` ??????????
-
-????
-- ????????????????
-
-????
-- ? `embedding_model_path` ??????????????? `model_cache`?
-- ?? `python -m data_pipeline.parse_chats` ????????????????????
-
-????
-- ?? `python -m data_pipeline.parse_chats`??? `Done. inserted=...`
-- ?? `python -m data_pipeline.check_vector_db`??? `count` ???????
-
-### ?????? pin_memory ??
-??
-- ????????`pin_memory argument is set as true but no accelerator is found`
-
-??
-- ?? CPU ?????????????
-
-??
-- ???????? warning ?????????????????
+![Logs Page Running](./screenshots/logs.png)

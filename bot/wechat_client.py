@@ -77,6 +77,19 @@ class WeChatClient:
         common = sum(1 for ch1, ch2 in zip(a, b) if ch1 == ch2)
         return common / max(len(a), len(b))
 
+    @staticmethod
+    def _looks_like_noise_message(text: str) -> bool:
+        t = (text or "").strip()
+        if not t:
+            return True
+        if re.fullmatch(r"\d{1,4}([\s;:：]+\d{1,4}){0,2}", t):
+            return True
+        if re.fullmatch(r"\d{1,2}:\d{2}", t):
+            return True
+        if len(t) <= 4 and not re.search(r"[\u4e00-\u9fffA-Za-z]", t):
+            return True
+        return False
+
     def register_recently_sent(self, text: str, source: str = "assistant"):
         norm = self._normalize_for_compare(text)
         if not norm:
@@ -193,18 +206,26 @@ class WeChatClient:
         if reader is None:
             return None
 
-        left_offset, top_offset, right_offset, bottom_offset = self.msg_bbox_offsets
-        bbox = (
-            win.left + left_offset,
-            win.top + top_offset,
-            win.left + right_offset,
-            win.top + bottom_offset,
+        # 使用聊天面板底部区域做 OCR，避免固定小框漏掉左侧/短消息。
+        panel_left, panel_top, panel_right, panel_bottom = self.chat_panel_bbox_offsets
+        panel_bbox = (
+            win.left + panel_left,
+            win.top + panel_top,
+            win.left + panel_right,
+            win.top + panel_bottom,
         )
 
         try:
-            screenshot = ImageGrab.grab(bbox=bbox)
-            img_np = np.array(screenshot)
-            result = reader.readtext(img_np, detail=0)
+            panel_img = np.array(ImageGrab.grab(bbox=panel_bbox))
+            h, w = panel_img.shape[:2]
+            if h <= 0 or w <= 0:
+                return None
+
+            # 只取底部 35% 区域，聚焦最新几条消息并降低噪声。
+            start_y = max(0, int(h * 0.65))
+            latest_region = panel_img[start_y:h, 0:w]
+
+            result = reader.readtext(latest_region, detail=0)
             text = " ".join(result).strip()
             text = " ".join(text.split())
             if not text:
@@ -220,6 +241,10 @@ class WeChatClient:
                 return None
 
             if self.is_recently_sent(text):
+                return None
+
+            if self._looks_like_noise_message(text):
+                logger.debug(f"Skip noisy latest-message OCR: {text}")
                 return None
 
             logger.info(f"Recognized message: {text}")
@@ -251,3 +276,4 @@ class WeChatClient:
 
     def get_new_messages(self):
         return self.get_latest_message()
+

@@ -1,91 +1,43 @@
-﻿# Changelog
+# Changelog
 
-> 记录实际已完成的改动。
-
-![Status](https://img.shields.io/badge/status-active-success)
-![Format](https://img.shields.io/badge/format-keep%20a%20changelog-blue)
-
-## [Unreleased] - 2026-03-08
+## [Unreleased] - 2026-03-10
 
 ### Added
-- 新增 `bot/chat_models.py`
-  - `ChatMessage` 增加结构化字段：`is_timestamp/is_noise/source/msg_id`
-  - `MemoryItem` 保持可扩展记忆结构
-- 新增防乱回测试
-  - `tests/test_self_echo.py`
-  - `tests/test_reminder_isolation.py`
-  - `tests/test_analyzer_noise_guard.py`
-- 扩展已有测试
-  - `tests/test_chat_ocr_parser.py`
-  - `tests/test_conversation_manager.py`
+- 新增 `app/control_api.py`，提供控制台所需 HTTP 接口：
+  - `GET /api/status`
+  - `GET /api/messages/recent`
+  - `GET /api/context/current`
+  - `GET /api/detections/latest`
+  - `GET /api/memories`
+  - `GET /api/settings`
+  - `POST /api/settings`
+  - `GET /api/logs`
+  - `POST /api/control/start`
+  - `POST /api/control/stop`
+- 新增前端控制台 `frontend/`（Vite + React + TypeScript）：
+  - React Router declarative 路由
+  - TanStack Query 数据层
+  - mock 优先开发模式
+  - 全局 Loading / Empty / Error 状态组件
+- 新增页面与业务组件：Dashboard、Chat Monitor、Detection Debug、Memory Center、Settings、Logs。
 
 ### Changed
-- `bot/chat_ocr_parser.py`
-  - 增加时间戳识别与噪声碎片识别
-  - 输出 `sender_role/is_timestamp/is_noise/raw_timestamp/confidence/msg_id`
-  - `msg_id` 改为归一化文本 + 粗粒度位置生成，降低 OCR 抖动影响
-- `bot/conversation_manager.py`
-  - 增加硬过滤：仅允许 `other` 且非 `timestamp/noise/internal/self_echo`
-  - 增加 `processed_msg_ids` 去重
-  - 增加“两次稳定出现才确认新消息”机制
-- `bot/wechat_client.py`
-  - 发送后写入 recently sent 缓存
-  - 新增 self echo 匹配方法，避免回声消息再次进入回复链
-- `app/main.py`
-  - 接入新过滤链路与消息元信息
-  - reminder 发送标记 `internal_reminder`
-  - 启动时 overdue reminder 不再直接注入普通回复链
-- `bot/analyzer.py`
-  - 新增 `noise/system/self_echo` 意图
-  - 垃圾输入降置信度，不再高置信度误判
-  - task 规则增加前置约束，避免“提醒”关键词误触发
-- `bot/reply.py`
-  - 增加最后一道 skip 防线
-  - 命中 `system/noise/self_echo/短碎片` 时拒绝生成回复
-- `bot/memory_extractor.py`
-  - 过滤 `me/system/noise/self_echo/internal_reminder`，避免自说自话入记忆
-- `bot/reminders.py`
-  - 增加 `source` 和 `overdue` 字段
-  - 支持 `allow_overdue=False` 的安全弹出策略
+- 前端支持 `VITE_USE_MOCK` 与 `VITE_API_BASE_URL` 双模式切换。
+- Topbar 新增 `MOCK/REAL` 模式与 API 连通状态提示（Mock Data / Connected / Disconnected / Checking）。
+- Detection Debug 新增标签筛选、置信度筛选、选中高亮。
+- Logs 新增级别筛选与关键字检索。
+- Chat Monitor 新增消息统计卡与上下文时间线。
 
 ### Fixed
-- 修复 OCR 自激回声 / 已读乱回
-  - 不再回复自己刚发送的消息
-  - 不再回复时间戳/日期/OCR 碎片
-  - internal reminder 不再回流普通聊天链路
+- 修复前端运行时 JSON/BOM 导致的 Vite 启动失败：
+  - 现象：`Unexpected token '﻿' ... is not valid JSON`
+  - 处理：将 `frontend` 关键配置文件转为 UTF-8 无 BOM。
+- 明确端口使用，避免误访问 `127.0.0.1`（80 端口）导致 `ERR_CONNECTION_REFUSED`。
 
-### Verified
-- `python -m unittest -v`
-  - 结果：`42 passed, 1 skipped`
+### Notes
+- 当前控制层通过子进程控制 `python -m app.main`，不改后端核心逻辑。
+- `start/stop` 已可通过前端调用；若控制 API 未启动，前端 REAL 模式会显示断连。
 
-### Docs
-- 更新 `docs/README.md`
-- 更新 `docs/troubleshooting.md`
-- 更新 `docs/ROADMAP.md`
-- 更新 `docs/CHANGELOG.md`
-
-### 2026-03-09
-
-#### Added
-- ?? `data_pipeline/check_vector_db.py`
-  - ?????????????????????
-
-#### Changed
-- `app/main.py`
-  - ??? `pin_memory` CPU ??????????????????
-
-#### Fixed
-- ?? `parse_chats` ???????????
-  - `.env` ? `embedding_model_path` ??????????? `FileNotFoundError`
-  - ?????? `python -m data_pipeline.parse_chats` ?????????????
-
-#### Verified
-- `python -m data_pipeline.parse_chats`
-  - ???`Done. inserted=9590`
-- `python -m data_pipeline.check_vector_db`
-  - ???`count=9590`
-
-## [History]
-
-> 更早版本可通过 Git 历史查看：
-> `git log --oneline`
+## [2026-03-09]
+- 完成 YOLO + OCR 主链路接入与回退策略。
+- 完成相关测试补充与文档更新。

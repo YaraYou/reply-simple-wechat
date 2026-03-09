@@ -168,20 +168,30 @@ class ChatOCRParser:
         is_timestamp: bool,
     ) -> str:
         x1, _, x2, _ = bbox
-        center_x = (x1 + x2) / 2.0
-        norm_x = center_x / max(1, panel_width)
+        width = max(1, panel_width)
+        norm_left = x1 / width
+        norm_right = x2 / width
+        norm_center = ((x1 + x2) / 2.0) / width
 
-        # 微信双栏布局启发式：左侧=对方，右侧=我，中间区域优先判系统行。
-        # 阈值设计为“中间留白带”，减少头像/气泡抖动导致的角色误判。
-        if is_timestamp and 0.30 <= norm_x <= 0.70:
+        # 时间戳和典型系统文案优先判为 system。
+        if is_timestamp and 0.30 <= norm_center <= 0.70:
             return "system"
 
-        if self._looks_like_system_text(text) and 0.30 <= norm_x <= 0.70:
+        if self._looks_like_system_text(text) and 0.25 <= norm_center <= 0.75:
             return "system"
 
-        if norm_x <= 0.45:
+        # 优先使用边缘锚点：
+        # 右锚更可信（我方气泡右边缘通常贴近面板右侧），
+        # 左锚次之（对方气泡左边缘通常贴近左侧）。
+        if norm_right >= 0.78:
+            return "me"
+        if norm_left <= 0.22:
             return "other"
-        if norm_x >= 0.55:
+
+        # 兜底再使用中心点。
+        if norm_center <= 0.45:
+            return "other"
+        if norm_center >= 0.55:
             return "me"
         return "system"
 
@@ -301,4 +311,3 @@ class ChatOCRParser:
         value = text.strip().lower()
         value = re.sub(r"[\s;:：，。,.!?？！\-_/\\]+", "", value)
         return value
-

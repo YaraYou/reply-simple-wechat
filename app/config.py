@@ -33,6 +33,12 @@ class Settings(BaseSettings):
     chat_records_dir: str = "chat_records"
     multi_turn_examples_path: str = "multi_turn_examples.txt"
 
+    # YOLO detector
+    use_yolo_detector: bool = True
+    yolo_model_path: str = "models/chat_detector.pt"
+    yolo_conf_threshold: float = 0.25
+    yolo_iou_threshold: float = 0.45
+
     wechat_window_width: int = 900
     wechat_window_height: int = 700
     wechat_window_x: int = 50
@@ -50,6 +56,7 @@ class Settings(BaseSettings):
         self.chat_records_dir = _abs_path(self.chat_records_dir)
         self.multi_turn_examples_path = _abs_path(self.multi_turn_examples_path)
         self.reminders_file = _abs_path(self.reminders_file)
+        self.yolo_model_path = _abs_path(self.yolo_model_path)
 
 
 settings = Settings()

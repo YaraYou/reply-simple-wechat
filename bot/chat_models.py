@@ -5,6 +5,15 @@ from typing import Optional, Tuple
 
 
 @dataclass
+class DetectionResult:
+    """YOLO 检测结果。"""
+
+    label: str
+    confidence: float
+    bbox: Tuple[int, int, int, int]
+
+
+@dataclass
 class ChatMessage:
     """聊天窗口解析后的结构化消息。"""
 

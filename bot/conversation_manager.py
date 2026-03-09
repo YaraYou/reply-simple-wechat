@@ -31,15 +31,7 @@ class ConversationManager:
             if not msg.msg_id or msg.msg_id in self._seen_ids:
                 continue
 
-            # 先标注来源，再纳入缓存。
-            # 这一步要早于 _seen_ids 记录，避免同一条消息后续读取时 source 不一致。
-            if msg.sender_role == "me":
-                msg.source = msg.source or "self_echo"
-
-            if self._recently_sent_matcher is not None:
-                matched_source = self._recently_sent_matcher(msg.text)
-                if matched_source:
-                    msg.source = matched_source
+            self._mark_source(msg)
 
             self._seen_ids.add(msg.msg_id)
             self._messages.append(msg)
@@ -56,14 +48,7 @@ class ConversationManager:
 
         confirmed: List[ChatMessage] = []
         for msg in scan_messages:
-            # 每次扫描都同步一次 source 标记，避免 OCR 波动导致漏标。
-            # update_messages 中已经做过一次，这里重复做是为了覆盖“同一文本、不同 OCR 分段”的情况。
-            if msg.sender_role == "me":
-                msg.source = msg.source or "self_echo"
-            if self._recently_sent_matcher is not None:
-                matched_source = self._recently_sent_matcher(msg.text)
-                if matched_source:
-                    msg.source = matched_source
+            self._mark_source(msg)
 
             signature = self._build_signature(msg)
             if not self._passes_hard_filters(msg):
@@ -88,6 +73,47 @@ class ConversationManager:
 
         return confirmed
 
+    def get_reply_candidate_from_tail(self, messages: Iterable[ChatMessage]) -> Optional[ChatMessage]:
+        """只根据底部最后一条有效结构化元素决定是否回复，避免回头捞旧消息。"""
+        scan_messages = sorted(list(messages), key=lambda x: (x.bbox[1], x.bbox[0]))
+        if not scan_messages:
+            return None
+
+        self.update_messages(scan_messages)
+
+        tail = self._find_last_effective_message(scan_messages)
+        if tail is None:
+            return None
+
+        self._mark_source(tail)
+        if not self._passes_hard_filters(tail):
+            return None
+
+        signature = self._build_signature(tail)
+        seen_count = self._candidate_seen_count.get(signature, 0) + 1
+        self._candidate_seen_count[signature] = seen_count
+
+        if seen_count < self.confirm_rounds:
+            return None
+        if signature in self._processed_signatures:
+            return None
+        if tail.msg_id and tail.msg_id in self._processed_msg_ids:
+            return None
+
+        self._processed_signatures.add(signature)
+        if tail.msg_id:
+            self._processed_msg_ids.add(tail.msg_id)
+        return tail
+
+    def _find_last_effective_message(self, messages: List[ChatMessage]) -> Optional[ChatMessage]:
+        for msg in reversed(messages):
+            if not (msg.text or "").strip():
+                continue
+            if msg.is_noise:
+                continue
+            return msg
+        return None
+
     def _passes_hard_filters(self, msg: ChatMessage) -> bool:
         if msg.sender_role != "other":
             return False
@@ -106,6 +132,15 @@ class ConversationManager:
     def _build_signature(self, msg: ChatMessage) -> str:
         norm = ChatOCRParser.normalize_for_compare(msg.text)
         return f"{msg.sender_role}|{norm}|{msg.raw_timestamp or ''}"
+
+    def _mark_source(self, msg: ChatMessage):
+        if msg.sender_role == "me":
+            msg.source = msg.source or "self_echo"
+
+        if self._recently_sent_matcher is not None:
+            matched_source = self._recently_sent_matcher(msg.text)
+            if matched_source:
+                msg.source = matched_source
 
     def get_recent_messages(self, limit: int = 12) -> List[ChatMessage]:
         if limit <= 0:
@@ -131,4 +166,3 @@ class ConversationManager:
     @staticmethod
     def normalize_for_compare(text: str) -> str:
         return ChatOCRParser.normalize_for_compare(text)
-

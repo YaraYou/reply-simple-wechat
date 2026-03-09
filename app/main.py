@@ -15,7 +15,11 @@ warnings.filterwarnings(
 
 from app.config import settings
 from bot.analyzer import MessageAnalyzer
+from bot.chat_detector import ChatDetector
+from bot.chat_message_builder import ChatMessageBuilder
 from bot.chat_ocr_parser import ChatOCRParser
+from bot.chat_models import ChatMessage
+from bot.chat_pipeline import parse_messages_with_fallback
 from bot.conversation_manager import ConversationManager
 from bot.memory_extractor import MemoryExtractor
 from bot.reminders import ReminderStore
@@ -88,7 +92,14 @@ def main():
     analyzer = MessageAnalyzer(mode=settings.analyzer_mode, rule_fallback=True)
     reminder_store = ReminderStore(file_path=settings.reminders_file)
     chat_parser = ChatOCRParser()
-    conversation_manager = ConversationManager(max_messages=80, min_confidence=0.35, confirm_rounds=2)
+    chat_detector = ChatDetector(
+        model_path=settings.yolo_model_path,
+        conf_threshold=settings.yolo_conf_threshold,
+        iou_threshold=settings.yolo_iou_threshold,
+        enabled=settings.use_yolo_detector,
+    )
+    chat_message_builder = ChatMessageBuilder(chat_parser=chat_parser)
+    conversation_manager = ConversationManager(max_messages=80, min_confidence=0.35, confirm_rounds=1)
     conversation_manager.set_recently_sent_matcher(client.match_recently_sent)
     memory_extractor = MemoryExtractor()
     bot_start_time = dt.datetime.now()
@@ -105,17 +116,20 @@ def main():
             extracted_memory_items = []
             candidate_msg = None
 
-            # 主路径：优先使用整屏 OCR 的结构化解析结果。
-            # 这样可以拿到 sender/source/timestamp/confidence 等元信息，减少误触发回复。
+            # 主路径：优先使用 YOLO 检测 + 区域 OCR 结构化解析。
             panel_image = client.capture_chat_panel()
-            if panel_image is not None:
-                parsed_messages = chat_parser.parse_image(panel_image)
-                if parsed_messages:
-                    new_other_messages = conversation_manager.get_new_other_messages(parsed_messages)
-                    structured_context = conversation_manager.get_recent_messages(limit=12)
-                    if new_other_messages:
-                        candidate_msg = new_other_messages[-1]
-                        extracted_memory_items = memory_extractor.extract_from_messages(new_other_messages, owner="other")
+            parsed_messages, parse_source = parse_messages_with_fallback(
+                panel_image,
+                chat_detector,
+                chat_message_builder,
+                chat_parser,
+            )
+
+            if parsed_messages:
+                candidate_msg = conversation_manager.get_reply_candidate_from_tail(parsed_messages)
+                structured_context = conversation_manager.get_recent_messages(limit=12)
+                if candidate_msg is not None:
+                    extracted_memory_items = memory_extractor.extract_from_messages([candidate_msg], owner="other")
 
             message_meta = None
             if candidate_msg is not None:
@@ -129,19 +143,40 @@ def main():
                     "msg_id": candidate_msg.msg_id,
                 }
             else:
-                # 兜底路径：当整屏 OCR 没有稳定新消息时，退回到旧的"最新气泡"OCR 读取。
-                # 保留该分支是为了在 OCR 解析不稳定或性能受限时仍可工作。
-                new_msg = client.get_new_messages()
+                # 若 YOLO 主路径已产出结构化消息且最后一条不该回复（如 me/system/timestamp），本轮直接跳过。
+                # 注意：当当前是 OCR fallback 路径时，不应直接跳过，要继续尝试旧的 latest-message 兜底。
+                if parsed_messages and parse_source == "yolo_ocr":
+                    logger.debug("Skip this round: latest effective message is not replyable")
+                    continue
+
+                # 兜底路径：当结构化解析拿不到消息时，退回到旧的"最新气泡"OCR 读取。
+                if parse_source in {"ocr_fallback", "no_image"}:
+                    new_msg = client.get_new_messages()
+                else:
+                    new_msg = None
+
                 if new_msg:
                     recent_source = client.match_recently_sent(new_msg)
+                    synthetic_fallback = ChatMessage(
+                        msg_id=f"legacy_{ConversationManager.normalize_for_compare(new_msg)}",
+                        sender_role="other",
+                        text=new_msg,
+                        confidence=1.0,
+                        source=recent_source,
+                    )
+                    tail_candidate = conversation_manager.get_reply_candidate_from_tail([synthetic_fallback])
+                    if tail_candidate is None:
+                        continue
+
                     message_meta = {
-                        "sender_role": "other",
-                        "is_timestamp": False,
-                        "is_noise": False,
-                        "source": recent_source,
-                        "confidence": 1.0,
-                        "msg_id": None,
+                        "sender_role": tail_candidate.sender_role,
+                        "is_timestamp": tail_candidate.is_timestamp,
+                        "is_noise": tail_candidate.is_noise,
+                        "source": tail_candidate.source,
+                        "confidence": tail_candidate.confidence,
+                        "msg_id": tail_candidate.msg_id,
                     }
+                    new_msg = tail_candidate.text
 
             if not new_msg:
                 continue
