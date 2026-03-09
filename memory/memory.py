@@ -53,6 +53,7 @@ class ShortTermMemory:
         type_value = conversation_key.value
         limit = self._effective_type_limit(conversation_key)
 
+        # 类型内裁剪：先删除“低优先级且更旧”的轮次，尽量保留高价值上下文。
         while sum(1 for r in sender_rounds if r["type"] == type_value) > limit:
             candidates = [
                 (idx, round_item)
@@ -64,6 +65,7 @@ class ShortTermMemory:
 
     def _trim_global_limit(self, sender: str):
         sender_rounds = self.memory[sender]
+        # 全局裁剪：优先移除非 sticky 轮次；若全是 sticky，再按优先级+时间淘汰。
         while len(sender_rounds) > self.global_max_rounds:
             non_sticky = [
                 (idx, r)
@@ -136,6 +138,8 @@ class ShortTermMemory:
     ) -> str:
         rounds = self.get_recent_rounds(sender, conversation_type=conversation_type, types=types)
 
+        # 默认仅截取 prompt_max_rounds，防止提示词膨胀；
+        # 指定类型筛选时由调用方自行控制 max_rounds。
         if conversation_type is None and types is None:
             rounds = rounds[: (max_rounds or self.prompt_max_rounds)]
         elif max_rounds is not None:
@@ -153,3 +157,4 @@ class ShortTermMemory:
 
 
 short_memory = ShortTermMemory()
+

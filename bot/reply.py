@@ -238,6 +238,8 @@ def _retrieve_examples(vector_collection, short_memory_str: str, msg_clean: str)
             logger.debug(f"Retrieved {len(docs[0])} examples from vector db")
             return "\n".join(docs[0])
 
+        # 兼容历史数据：早期增量写入可能只有 metadata，没有 documents。
+        # 因此这里从 user/assistant 字段重建 few-shot 示例，避免检索命中却无法利用。
         metadatas = (results or {}).get("metadatas") or []
         if metadatas and metadatas[0]:
             reconstructed = []
@@ -274,13 +276,16 @@ def _should_skip_reply(
     message_meta: Optional[Dict[str, Any]],
     recently_sent_match: bool,
 ) -> bool:
+    # 第一层兜底：匹配到近期已发送内容，直接跳过，防止自回声循环。
     if recently_sent_match:
         return True
 
+    # 第二层兜底：过滤典型 OCR 噪声碎片，避免 LLM 为乱码生成回复。
     if _looks_like_garbage_input(msg):
         return True
 
     if analysis_context:
+        # 第三层兜底：以分析意图为准，屏蔽系统行/噪声/自消息。
         if analysis_context.get("intent") in {"noise", "system", "self_echo"}:
             return True
 
@@ -362,3 +367,4 @@ def get_smart_reply(
     except Exception as e:
         logger.error(f"Smart reply failed: {e}")
         return FALLBACK_REPLY
+

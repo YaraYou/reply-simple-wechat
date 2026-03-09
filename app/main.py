@@ -5,6 +5,13 @@ import time
 import sys
 import random
 import datetime as dt
+import warnings
+
+warnings.filterwarnings(
+    "ignore",
+    message=".*pin_memory.*no accelerator is found.*",
+    category=UserWarning,
+)
 
 from app.config import settings
 from bot.analyzer import MessageAnalyzer
@@ -98,6 +105,8 @@ def main():
             extracted_memory_items = []
             candidate_msg = None
 
+            # 主路径：优先使用整屏 OCR 的结构化解析结果。
+            # 这样可以拿到 sender/source/timestamp/confidence 等元信息，减少误触发回复。
             panel_image = client.capture_chat_panel()
             if panel_image is not None:
                 parsed_messages = chat_parser.parse_image(panel_image)
@@ -120,6 +129,8 @@ def main():
                     "msg_id": candidate_msg.msg_id,
                 }
             else:
+                # 兜底路径：当整屏 OCR 没有稳定新消息时，退回到旧的"最新气泡"OCR 读取。
+                # 保留该分支是为了在 OCR 解析不稳定或性能受限时仍可工作。
                 new_msg = client.get_new_messages()
                 if new_msg:
                     recent_source = client.match_recently_sent(new_msg)
@@ -144,6 +155,8 @@ def main():
                 source=(message_meta or {}).get("source"),
             )
 
+            # 双重防线：即便上游已过滤，主循环仍按意图做一次最终拦截，
+            # 防止后续模块变更导致噪声消息漏进回复链路。
             if analysis.intent in {"noise", "system", "self_echo"}:
                 logger.debug(f"Skip message by guard: {new_msg[:40]} intent={analysis.intent}")
                 continue
@@ -193,3 +206,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

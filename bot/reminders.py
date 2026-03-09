@@ -49,6 +49,7 @@ class ReminderStore:
         analysis: Dict[str, Any],
         now: Optional[dt.datetime] = None,
     ) -> Optional[ReminderTask]:
+        # ReminderStore 只处理 task 意图，避免把普通聊天写入任务池。
         if (analysis or {}).get("intent") != "task":
             return None
 
@@ -96,9 +97,11 @@ class ReminderStore:
             except ValueError:
                 continue
 
+            # 只弹出“到期未触发”的任务。未来时间任务继续保留在存储中。
             if due_at > now_dt:
                 continue
 
+            # 机器人重启后，默认不补发“启动前已经过期”的任务，避免一次性刷屏。
             is_overdue = overdue_before is not None and due_at < overdue_before
             if is_overdue and not allow_overdue:
                 item["overdue"] = True
@@ -151,6 +154,8 @@ class ReminderStore:
         explicit_time = self._parse_explicit_time(text)
         if explicit_time is not None:
             candidate = dt.datetime.combine(date_base, explicit_time)
+            # 例如“8:30 提醒我”在当天 9:00 才收到时，默认滚动到次日同一时刻。
+            # 但若用户显式说了“明天/后天/周X”，则尊重用户日期，不自动顺延。
             if candidate <= now and "明天" not in text and "后天" not in text and not any(k in text for k in WEEKDAY_MAP):
                 candidate = candidate + dt.timedelta(days=1)
             return candidate
@@ -197,3 +202,4 @@ class ReminderStore:
                 return dt.time(h, m)
 
         return None
+

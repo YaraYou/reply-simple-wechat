@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, Iterable, Union

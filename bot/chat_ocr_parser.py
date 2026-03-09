@@ -125,6 +125,7 @@ class ChatOCRParser:
         if not fragments:
             return []
 
+        # 以 y 轴邻近度做行级合并：先粗分行，再在行内按 x 排序拼接文本。
         groups: List[List[Dict[str, Any]]] = []
         for frag in fragments:
             if not groups:
@@ -170,6 +171,8 @@ class ChatOCRParser:
         center_x = (x1 + x2) / 2.0
         norm_x = center_x / max(1, panel_width)
 
+        # 微信双栏布局启发式：左侧=对方，右侧=我，中间区域优先判系统行。
+        # 阈值设计为“中间留白带”，减少头像/气泡抖动导致的角色误判。
         if is_timestamp and 0.30 <= norm_x <= 0.70:
             return "system"
 
@@ -280,6 +283,8 @@ class ChatOCRParser:
         norm_text = self.normalize_for_compare(text)
         # 采用粗粒度坐标，降低 OCR 抖动造成的重复误判
         qbbox = tuple(int(v / 10) for v in bbox)
+        # msg_id 依赖“角色+归一化文本+粗粒度坐标+原始时间”，
+        # 目标是跨帧稳定、对 OCR 轻微偏移不敏感，同时尽量区分同屏不同气泡。
         payload = f"{sender_role}|{norm_text}|{raw_timestamp or ''}|{qbbox[0]}|{qbbox[1]}|{qbbox[2]}|{qbbox[3]}"
         return hashlib.sha1(payload.encode("utf-8")).hexdigest()[:16]
 
@@ -296,3 +301,4 @@ class ChatOCRParser:
         value = text.strip().lower()
         value = re.sub(r"[\s;:：，。,.!?？！\-_/\\]+", "", value)
         return value
+

@@ -31,7 +31,8 @@ class ConversationManager:
             if not msg.msg_id or msg.msg_id in self._seen_ids:
                 continue
 
-            # 先标注来源，再纳入缓存
+            # 先标注来源，再纳入缓存。
+            # 这一步要早于 _seen_ids 记录，避免同一条消息后续读取时 source 不一致。
             if msg.sender_role == "me":
                 msg.source = msg.source or "self_echo"
 
@@ -55,7 +56,8 @@ class ConversationManager:
 
         confirmed: List[ChatMessage] = []
         for msg in scan_messages:
-            # 每次扫描都同步一次 source 标记，避免 OCR 波动导致漏标
+            # 每次扫描都同步一次 source 标记，避免 OCR 波动导致漏标。
+            # update_messages 中已经做过一次，这里重复做是为了覆盖“同一文本、不同 OCR 分段”的情况。
             if msg.sender_role == "me":
                 msg.source = msg.source or "self_echo"
             if self._recently_sent_matcher is not None:
@@ -70,6 +72,8 @@ class ConversationManager:
             seen_count = self._candidate_seen_count.get(signature, 0) + 1
             self._candidate_seen_count[signature] = seen_count
 
+            # confirm_rounds 是抗 OCR 抖动的关键阈值：
+            # 同一候选消息连续多轮扫描出现后，才视为“稳定新消息”并触发回复。
             if seen_count < self.confirm_rounds:
                 continue
             if signature in self._processed_signatures:
@@ -127,3 +131,4 @@ class ConversationManager:
     @staticmethod
     def normalize_for_compare(text: str) -> str:
         return ChatOCRParser.normalize_for_compare(text)
+

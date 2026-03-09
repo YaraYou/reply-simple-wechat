@@ -2,7 +2,7 @@
 
 ```txt
 Project: ReplySimpleWeChat
-Updated: 2026-03-08
+Updated: 2026-03-09
 ```
 
 ## 2026-03-08 Done
@@ -18,6 +18,12 @@ Updated: 2026-03-08
 - [x] 隔离 `internal_reminder`，启动时 overdue 不直接注入普通链路
 - [x] analyzer 新增 `noise/system/self_echo` 防误判意图
 - [x] 全量测试通过 `42 passed, 1 skipped`
+
+## 2026-03-09 Done
+- [x] ????????????`embedding_model_path`?
+- [x] ??????????? `check_vector_db.py`
+- [x] ?? `parse_chats` ???????`python -m data_pipeline.parse_chats`
+- [x] ?????????? CPU ?? `pin_memory` ????
 
 ## Next
 
